@@ -24,6 +24,7 @@ The node id is sent back to the client.
     </x>
   </command>
 </iq>
+```
 
 ### What Conversatations sends to the user’s server
 
@@ -33,6 +34,8 @@ After registrating with the App server Conversations sends the node ID and the j
 
 When a push is required (this is determined with internal logic of the user’s server that is out of scope of this document) the user’s server will send the node id to the app server. The user’s server *can* also add additonal information like number of messages pending, the sender jid of the last message and even the body of the last message. Whether or not this information is included is up to the implementation and the configuration of the user’s server and is out of scope for this document as well. Whether or not the app server receives that additional information it will just ignore it and not process it.
 The sender jid for the push is the the jid of the server. Since the app server didn’t store the account jid and since the account jid is not included in the push it won’t know for which account the push is actually for. It will just be able to look up the corresponding FCM token based on the node id.
+
+An example of that communication can be fonud in [XEP-0357 Section 7](https://xmpp.org/extensions/xep-0357.html#publishing).
 
 ### What the app server sends via Google to the user’s device
 
