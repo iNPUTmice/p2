@@ -15,6 +15,16 @@ Here is a quick description of how this relationship is set up.
 * The app server then generates a random string (Node ID in the language of the XEP) and stores a combination of the FCM Token, the node id, the domain of the account (not the entire account) and a hashed string of the account jid + the secure device id. Since the account jid is essentially *salted* with the secure device id the app server operator won’t be able to reverse the account jids by looking at the database.
 The node id is sent back to the client.
 
+```
+<iq to="p2.siacs.eu" from="d…l@g…h.de/Conversations.XYZa">
+  <command xmlns="http://jabber.org/protocol/commands" node="register-push-fcm" action="execute">
+    <x xmlns="jabber:x:data" type="submit">
+      <field var="android-id"><value>123c0ffee</value></field>
+      <field var="token"><value>somethingrandom</value></field>
+    </x>
+  </command>
+</iq>
+
 ### What Conversatations sends to the user’s server
 
 After registrating with the App server Conversations sends the node ID and the jid of the app server (p2.siacs.eu) to the users server.
@@ -29,6 +39,10 @@ The sender jid for the push is the the jid of the server. Since the app server d
 Upon receiving a push from a server the app server looks up the hashed account jid + secure device id combination and the FCM token and sends the hash to the token (Rember token means device address in FCM language).
 
 The hash can then be used by Conversations to determine which of a number of accounts should be woken up. The hash is not reversible but since Conversations has a limited number of accounts and also knows the secure device id it can just calculate all hashes. Google only sees that hash and nothing else.
+
+```
+{'to':'fcm-token','data':{'account':'hashed account jid + device id'}}
+```
 
 ## Setup
 
