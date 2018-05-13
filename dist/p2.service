@@ -1,0 +1,10 @@
+[Unit]
+Description=Conversations Push Proxy
+
+[Service]
+User=p2
+Group=p2
+ExecStart=/usr/bin/java -jar /opt/p2-0.1.jar -c /etc/p2.conf
+
+[Install]
+WantedBy=multi-user.target

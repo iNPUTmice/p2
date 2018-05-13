@@ -1,7 +1,6 @@
 package eu.siacs.p2;
 
 import eu.siacs.p2.controller.PushController;
-import eu.siacs.p2.persistance.TargetStore;
 import org.apache.commons.cli.*;
 import rocks.xmpp.core.XmppException;
 import rocks.xmpp.core.session.XmppSessionConfiguration;
@@ -16,6 +15,8 @@ public class P2 {
 
     private static final Options options;
     public static SecureRandom SECURE_RANDOM = new SecureRandom();
+
+    private static final int RETRY_INTERVAL = 5000;
 
     static {
         options = new Options();
@@ -55,12 +56,10 @@ public class P2 {
         externalComponent.addIQHandler(Command.class, PushController.register);
         externalComponent.addIQHandler(PubSub.class, PushController.push);
 
-        TargetStore.getInstance();
-
-        connectAndKeepRetrying(externalComponent, 5000);
+        connectAndKeepRetrying(externalComponent);
     }
 
-    private static void connectAndKeepRetrying(final ExternalComponent component, final long retryInterval) {
+    private static void connectAndKeepRetrying(final ExternalComponent component) {
         while (true) {
             try {
                 component.connect();
@@ -70,7 +69,7 @@ public class P2 {
             } catch (XmppException e) {
                 System.err.println(e.getMessage());
             }
-            Utils.sleep(retryInterval);
+            Utils.sleep(RETRY_INTERVAL);
         }
     }
 
