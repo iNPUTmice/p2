@@ -30,6 +30,12 @@ The node id is sent back to the client.
 
 After registrating with the App server Conversations sends the node ID and the jid of the app server (p2.siacs.eu) to the users server.
 
+```
+<iq type='set' id='x42'>
+  <enable xmlns='urn:xmpp:push:0' jid='p2.siacs.eu' node='random-node-id' />
+</iq> 
+```
+
 ### What the user’s server sends to the app server
 
 When a push is required (this is determined with internal logic of the user’s server that is out of scope of this document) the user’s server will send the node id to the app server. The user’s server *can* also add additonal information like number of messages pending, the sender jid of the last message and even the body of the last message. Whether or not this information is included is up to the implementation and the configuration of the user’s server and is out of scope for this document as well. Whether or not the app server receives that additional information it will just ignore it and not process it.
