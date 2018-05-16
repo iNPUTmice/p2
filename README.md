@@ -85,7 +85,7 @@ The hash can then be used by Conversations to determine which of a number of acc
 ```
 ### Further optimizations
 
-Currently when receiving a push from a Jabber the app server takes the domain name and the node id to look up a push token. If the node id is unique enough we don’t actually need the domain as a second identifier. However since push in general is still somewhat experimental I would like to keep the domain information for now to be able to properly debug the app server when something goes wrong and narrow down potential proplems to a specific server.
+Currently when receiving a push from a Jabber server the app server takes the domain name and the node id to look up a push token. If the node id is unique enough we don’t actually need the domain as a second identifier. However since push in general is still somewhat experimental I would like to keep the domain information for now to be able to properly debug the app server when something goes wrong and narrow down potential proplems to a specific server.
 
 The domain will be removed from the database once everything goes smoothly.
 
