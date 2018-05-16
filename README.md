@@ -16,11 +16,33 @@ Here is a quick description of how this relationship is set up.
 The node id is sent back to the client.
 
 ```
-<iq to="p2.siacs.eu" from="d…l@g…h.de/Conversations.XYZa">
-  <command xmlns="http://jabber.org/protocol/commands" node="register-push-fcm" action="execute">
+<iq from="xiaomia1@jabber.de/Conversations.sAdA" id="cXo5bNCF6wgD" to="p2.siacs.eu" type="set">
+  <command xmlns="http://jabber.org/protocol/commands" action="execute" node="register-push-fcm">
     <x xmlns="jabber:x:data" type="submit">
-      <field var="android-id"><value>123c0ffee</value></field>
-      <field var="token"><value>somethingrandom</value></field>
+      <field var="token">
+        <value>eeDXSJjASJY:APA91bEKxhXK54-vHhY9O55JmU2R0nDJL2rRENm-W9uPY6x3jHi0i0OyvPu6js9jVPZqDeX9ZQydZCBZE19o7a0kK4_n88fCgufXjaOlvalh9VibB2zOI7dQRTaDNB3H5s4dicpWD0m4</value>
+      </field>
+      <field var="android-id">
+        <value>92afd7a91cdba9a0</value>
+      </field>
+    </x>
+  </command>
+</iq>
+```
+
+```
+<iq from="p2.siacs.eu" id="cXo5bNCF6wgD" to="xiaomia1@jabber.de/Conversations.sAdA" type="result">
+  <command xmlns="http://jabber.org/protocol/commands" action="complete" node="register-push-fcm" sessionid="1526463999190">
+    <x xmlns="jabber:x:data" type="form">
+      <field type="jid-single" var="jid">
+        <value>p2.siacs.eu</value>
+      </field>
+      <field type="text-single" var="node">
+        <value>eKxTS5n3bOe0</value>
+      </field>
+      <field type="text-single" var="secret">
+        <value>KK4+H5WMfpRG/2zCbuKq6wpX</value>
+      </field>
     </x>
   </command>
 </iq>
@@ -32,8 +54,15 @@ After registrating with the App server Conversations sends the node ID and the j
 
 ```
 <iq type='set' id='x42'>
-  <enable xmlns='urn:xmpp:push:0' jid='p2.siacs.eu' node='random-node-id' />
-</iq> 
+  <enable xmlns='urn:xmpp:push:0' jid='p2.siacs.eu' node='eKxTS5n3bOe0' />
+</iq>
+```
+
+### What the app server stores
+
+```
+device                                   | domain    | token                                                                                                                                                   | node       | secret                
+ec164939a8485ee6b7f7871071a11c7bb18aead5 | jabber.de | eeDXSJjASJY:APA91bEKxhXK54-vHhY9O55JmU2R0nDJL2rRENm-W9uPY6x3jHi0i0OyvPu6js9jVPZqDeX9ZQydZCBZE19o7a0kK4_n88fCgufXjaOlvalh9VibB2zOI7dQRTaDNB3H5s4dicpWD0m4|eKxTS5n3bOe0|KK4+H5WMfpRG/2zCbuKq6wpX
 ```
 
 ### What the user’s server sends to the app server
@@ -41,7 +70,7 @@ After registrating with the App server Conversations sends the node ID and the j
 When a push is required (this is determined with internal logic of the user’s server that is out of scope of this document) the user’s server will send the node id to the app server. The user’s server *can* also add additonal information like number of messages pending, the sender jid of the last message and even the body of the last message. Whether or not this information is included is up to the implementation and the configuration of the user’s server and is out of scope for this document as well. Whether or not the app server receives that additional information it will just ignore it and not process it.
 The sender jid for the push is the the jid of the server. Since the app server didn’t store the account jid and since the account jid is not included in the push it won’t know for which account the push is actually for. It will just be able to look up the corresponding FCM token based on the node id.
 
-An example of that communication can be fonud in [XEP-0357 Section 7](https://xmpp.org/extensions/xep-0357.html#publishing).
+An example of that communication can be found in [XEP-0357 Section 7](https://xmpp.org/extensions/xep-0357.html#publishing).
 
 ### What the app server sends via Google to the user’s device
 
@@ -50,7 +79,7 @@ Upon receiving a push from a server the app server looks up the hashed account j
 The hash can then be used by Conversations to determine which of a number of accounts should be woken up. The hash is not reversible but since Conversations has a limited number of accounts and also knows the secure device id it can just calculate all hashes. Google only sees that hash and nothing else.
 
 ```
-{'to':'fcm-token','data':{'account':'hashed account jid + device id'}}
+{'to':'fcm-token','data':{'account':'ec164939a8485ee6b7f7871071a11c7bb18aead5'}}
 ```
 
 ## Setup
