@@ -30,7 +30,7 @@ public class PushController {
                 final String androidId = data.get().findValue("android-id");
                 final String token = data.get().findValue("token");
 
-                if (token == null || androidId == null) {
+                if (isNullOrEmpty(token) || isNullOrEmpty(androidId)) {
                     return iq.createError(Condition.BAD_REQUEST);
                 }
 
@@ -57,6 +57,10 @@ public class PushController {
         }
         return iq.createError(Condition.BAD_REQUEST);
     });
+
+    private static boolean isNullOrEmpty(String value) {
+        return value == null || value.trim().isEmpty();
+    }
 
     public static IQHandler push = (iq -> {
         PubSub pubSub = iq.getExtension(PubSub.class);

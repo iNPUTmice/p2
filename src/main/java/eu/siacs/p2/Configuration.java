@@ -20,12 +20,17 @@ public class Configuration {
     private String host = "localhost";
     private int port = 5348; //prosody is 5347
     private Jid jid;
+    private boolean debug = false;
     private String sharedSecret;
     private String fcmAuthKey;
     private String storagePath = Paths.get("").toAbsolutePath().toString();
 
     private Configuration() {
 
+    }
+
+    public boolean isDebug() {
+        return debug;
     }
 
     public String getName() {

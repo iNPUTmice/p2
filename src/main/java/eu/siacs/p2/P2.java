@@ -4,6 +4,7 @@ import eu.siacs.p2.controller.PushController;
 import org.apache.commons.cli.*;
 import rocks.xmpp.core.XmppException;
 import rocks.xmpp.core.session.XmppSessionConfiguration;
+import rocks.xmpp.core.session.debug.ConsoleDebugger;
 import rocks.xmpp.extensions.commands.model.Command;
 import rocks.xmpp.extensions.component.accept.ExternalComponent;
 import rocks.xmpp.extensions.pubsub.model.PubSub;
@@ -42,13 +43,16 @@ public class P2 {
             }
         }
 
-        final XmppSessionConfiguration configuration = XmppSessionConfiguration.builder()
-                .build();
+        final XmppSessionConfiguration.Builder builder = XmppSessionConfiguration.builder();
+
+        if (Configuration.getInstance().isDebug()) {
+            builder.debugger(ConsoleDebugger.class);
+        }
 
         final ExternalComponent externalComponent = ExternalComponent.create(
                 Configuration.getInstance().getName(),
                 Configuration.getInstance().getSharedSecret(),
-                configuration,
+                builder.build(),
                 Configuration.getInstance().getHost(),
                 Configuration.getInstance().getPort()
         );
