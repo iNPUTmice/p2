@@ -14,7 +14,10 @@ import rocks.xmpp.extensions.commands.model.Command;
 import rocks.xmpp.extensions.data.model.DataForm;
 import rocks.xmpp.extensions.pubsub.model.PubSub;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
 public class PushController {
 
@@ -57,11 +60,6 @@ public class PushController {
         }
         return iq.createError(Condition.BAD_REQUEST);
     });
-
-    private static boolean isNullOrEmpty(String value) {
-        return value == null || value.trim().isEmpty();
-    }
-
     public static IQHandler push = (iq -> {
         PubSub pubSub = iq.getExtension(PubSub.class);
         if (pubSub != null && iq.getType() == IQ.Type.SET) {
@@ -69,11 +67,12 @@ public class PushController {
             final Jid jid = iq.getFrom();
             final String secret = pubSub.getPublishOptions() != null ? pubSub.getPublishOptions().findValue("secret") : null;
 
-            if (node != null && secret != null  && jid.isBareJid()) {
+            if (node != null && secret != null && jid.isBareJid()) {
                 final Target target = TargetStore.getInstance().find(Jid.ofDomain(jid), node);
                 if (target != null) {
                     if (secret.equals(target.getSecret())) {
-                        if (FcmService.getInstance().push(Message.createHighPriority(target.getDevice(), target.getToken()))) {
+                        final Message message = Message.createHighPriority(target, Configuration.getInstance().isCollapse());
+                        if (FcmService.getInstance().push(message)) {
                             return iq.createResult();
                         } else {
                             return iq.createError(Condition.RECIPIENT_UNAVAILABLE);
@@ -91,6 +90,10 @@ public class PushController {
         }
         return iq.createError(Condition.BAD_REQUEST);
     });
+
+    private static boolean isNullOrEmpty(String value) {
+        return value == null || value.trim().isEmpty();
+    }
 
     private static DataForm createRegistryResponseDataForm(String node, String secret) {
         List<DataForm.Field> fields = new ArrayList<>();

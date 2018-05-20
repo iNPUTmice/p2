@@ -21,6 +21,7 @@ public class Configuration {
     private int port = 5348; //prosody is 5347
     private Jid jid;
     private boolean debug = false;
+    private boolean collapse = true;
     private String sharedSecret;
     private String fcmAuthKey;
     private String storagePath = Paths.get("").toAbsolutePath().toString();
@@ -29,8 +30,43 @@ public class Configuration {
 
     }
 
+    public synchronized static void setFilename(String filename) throws FileNotFoundException {
+        if (INSTANCE != null) {
+            throw new IllegalStateException("Unable to set filename after instance has been created");
+        }
+        Configuration.FILE = new File(filename);
+        if (!Configuration.FILE.exists()) {
+            throw new FileNotFoundException();
+        }
+    }
+
+    public synchronized static Configuration getInstance() {
+        if (INSTANCE == null) {
+            INSTANCE = load();
+        }
+        return INSTANCE;
+    }
+
+    private static Configuration load() {
+        final GsonBuilder gsonBuilder = new GsonBuilder();
+        Adapter.register(gsonBuilder);
+        final Gson gson = gsonBuilder.create();
+        try {
+            System.out.println("Reading configuration from " + FILE.getAbsolutePath());
+            return gson.fromJson(new FileReader(FILE), Configuration.class);
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException("Configuration file not found");
+        } catch (JsonSyntaxException e) {
+            throw new RuntimeException("Invalid syntax in config file");
+        }
+    }
+
     public boolean isDebug() {
         return debug;
+    }
+
+    public boolean isCollapse() {
+        return collapse;
     }
 
     public String getName() {
@@ -53,39 +89,8 @@ public class Configuration {
         return fcmAuthKey;
     }
 
-    public synchronized static void setFilename(String filename) throws FileNotFoundException {
-        if (INSTANCE != null) {
-            throw new IllegalStateException("Unable to set filename after instance has been created");
-        }
-        Configuration.FILE = new File(filename);
-        if (!Configuration.FILE.exists()) {
-            throw new FileNotFoundException();
-        }
-    }
-
-    public synchronized static  Configuration getInstance() {
-        if (INSTANCE == null) {
-            INSTANCE = load();
-        }
-        return INSTANCE;
-    }
-
     public String getStorageFile(Class clazz) {
-        return new File(storagePath,clazz.getSimpleName()+".db").getAbsolutePath();
-    }
-
-    private static Configuration load() {
-        final GsonBuilder gsonBuilder = new GsonBuilder();
-        Adapter.register(gsonBuilder);
-        final Gson gson = gsonBuilder.create();
-        try {
-            System.out.println("Reading configuration from "+FILE.getAbsolutePath());
-            return gson.fromJson(new FileReader(FILE),Configuration.class);
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException("Configuration file not found");
-        } catch (JsonSyntaxException e) {
-            throw new RuntimeException("Invalid syntax in config file");
-        }
+        return new File(storagePath, clazz.getSimpleName() + ".db").getAbsolutePath();
     }
 
     public Jid getJid() {

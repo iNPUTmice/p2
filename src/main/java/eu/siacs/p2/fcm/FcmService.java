@@ -1,5 +1,6 @@
 package eu.siacs.p2.fcm;
 
+import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import de.gultsch.xmpp.addr.adapter.Adapter;
@@ -18,8 +19,6 @@ public class FcmService {
 
     private static final URL FCM_URL;
 
-    private final GsonBuilder gsonBuilder;
-
     static {
         try {
             FCM_URL = new URL("https://fcm.googleapis.com/fcm/send");
@@ -27,6 +26,8 @@ public class FcmService {
             throw new AssertionError("FCM URL wrong");
         }
     }
+
+    private final GsonBuilder gsonBuilder;
 
     private FcmService() {
         this.gsonBuilder = new GsonBuilder();
@@ -38,7 +39,7 @@ public class FcmService {
     }
 
     public boolean push(Message message) {
-        final Gson gson = gsonBuilder.create();
+        final Gson gson = gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
         try {
             HttpsURLConnection urlConnection = (HttpsURLConnection) FCM_URL.openConnection();
             urlConnection.setRequestMethod("POST");
@@ -50,7 +51,7 @@ public class FcmService {
             outputStream.flush();
             outputStream.close();
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
-            Response response = gson.fromJson(bufferedReader,Response.class);
+            Response response = gson.fromJson(bufferedReader, Response.class);
             boolean success;
             if (urlConnection.getResponseCode() == 200) {
                 success = response.getSuccess() > 0;
