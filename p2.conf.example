@@ -1,8 +1,9 @@
 {
     "host": "127.0.0.1",
-    "port: 5347,
+    "port": 5347,
     "jid": "p2.yourserver.tld",
     "sharedSecret": "verysecure",
-    "fcmAuthKey": "copyfromapiconsole"
-    "storagePath": "/var/lib/p2/";
+    "fcmAuthKey": "copyfromapiconsole",
+    "storagePath": "/var/lib/p2/",
+    "debug": false
 }
