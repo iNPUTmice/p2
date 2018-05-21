@@ -1,5 +1,5 @@
 # Conversations Push Proxy
-A [XEP-0357: Push Notifications](https://xmpp.org/extensions/xep-0357.html) app server that relays push messages between the user’s server and Googles Firebase Cloud Messaging.
+An [XEP-0357: Push Notifications](https://xmpp.org/extensions/xep-0357.html) app server that relays push messages between the user’s server and Googles Firebase Cloud Messaging.
 
 ## Background
 Due to restrictions in Firebase Cloud Messaging (and most other push services) only the developer can create push notifications for theirs apps. For this reason a user’s server wouldn’t be able to wake up a user’s device directly but has to proxy that wake up signal through the infrastructure of the app developer.
@@ -50,7 +50,7 @@ The node id is sent back to the client.
 </iq>
 ```
 
-### What Conversatations sends to the user’s server
+### What Conversations sends to the user’s server
 
 After registrating with the App server Conversations sends the node ID and the jid of the app server (p2.siacs.eu) to the users server.
 
@@ -89,16 +89,16 @@ Currently when receiving a push from a Jabber server the app server takes the do
 
 The domain will be removed from the database once everything goes smoothly.
 
-## Setup
+## Manual Installation
 
 ### Build from source
 ```
 git checkout https://github.com/iNPUTmice/p2.git
 cd p2
-mvn packege
+mvn package
 ```
 
-### Install
+### Manual Install
 ```
 cp target/p1-0.1.jar /opt
 cp p2.conf.example /etc/p2.conf
@@ -109,4 +109,63 @@ cp dist/p2.service /etc/systemd/system
 systemctl daemon-reload
 systemctl enable p2.service
 systemctl start p2.service
+```
+
+## Installation using distro packages
+
+### Arch linux
+
+1. Install [p2-git](https://aur.archlinux.org/packages/p2-git/) from the
+   [Arch User Repository](https://aur.archlinux.org/)
+   (e.g. using `yaourt -S p2-git`)
+
+2. `systemctl enable p2.service`
+
+3. `systemctl start p2.service`
+
+## Configuration of FCM, Xmpp-Server, and Conversations
+
+### Firebase Cloud Messaging (FCM)
+
+Navigate to the [Firebase Console](https://console.firebase.google.com), create a project, add cloud messaging to the project and create
+an android app.
+
+You will then need to copy three things from the console:
+
+1. the server key and use it for `p2.conf` as `fcmAuthKey`.
+2. the sender-id and use it for `push.xml` as `gcm_defaultSenderId`.
+3. the app-id and use it for `push.xml` as `google_app_id`.
+
+### Xmpp-Server
+
+You need to configue your xmpp-server to incorporate the push app server p2 as an external component.
+Example for ejabberd given below:
+
+```yaml
+  ##
+  ## ejabberd_service: Interact with external components (transports, ...)
+  ##
+  -
+    port: 5347
+    module: ejabberd_service
+    access: all
+    shaper_rule: fast
+    ip: "127.0.0.1"
+    hosts:
+      "p2.yourserver.tld":
+        password: "verysecure"
+
+```
+
+### Building Conversations
+
+Create a file `src/playstore/res/values/push.xml` with the following contents and execute `./gradlew assemblePlaystoreDebug`
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="app_server">p2.yourserver.tld</string>
+  <string name="gcm_defaultSenderId" translatable="false">copyfromapiconsole</string>
+  <string name="google_app_id">1:copyfromapiconsole:android:copyfromapiconsole</string>
+</resources>
 ```
