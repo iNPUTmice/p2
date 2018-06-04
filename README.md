@@ -100,7 +100,7 @@ mvn package
 
 ### Manual Install
 ```
-cp target/p1-0.1.jar /opt
+cp target/p2-0.1.jar /opt
 cp p2.conf.example /etc/p2.conf
 mkdir /var/lib/p2
 useradd -d /var/lib/p2 -r p2
