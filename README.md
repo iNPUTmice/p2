@@ -76,7 +76,7 @@ An example of that communication can be found in [XEP-0357 Section 7](https://xm
 
 ### What the app server sends via Google to the user’s device
 
-Upon receiving a push from a server the app server looks up the hashed account jid + secure device id combination and the FCM token and sends the hash to the token (Rember token means device address in FCM language).
+Upon receiving a push request from a XMPP server, the app server looks up the hashed account jid + secure device id combination and the FCM token. It then sends the hash via Google to the user's device, using the token (remember: 'token' means 'device address' in FCM language).
 
 The hash can then be used by Conversations to determine which of a number of accounts should be woken up. The hash is not reversible but since Conversations has a limited number of accounts and also knows the secure device id it can just calculate all hashes. Google only sees that hash and nothing else.
 
