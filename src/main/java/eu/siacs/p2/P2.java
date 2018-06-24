@@ -7,6 +7,8 @@ import rocks.xmpp.core.session.XmppSessionConfiguration;
 import rocks.xmpp.core.session.debug.ConsoleDebugger;
 import rocks.xmpp.extensions.commands.model.Command;
 import rocks.xmpp.extensions.component.accept.ExternalComponent;
+import rocks.xmpp.extensions.disco.ServiceDiscoveryManager;
+import rocks.xmpp.extensions.muc.model.Muc;
 import rocks.xmpp.extensions.pubsub.model.PubSub;
 
 import java.io.FileNotFoundException;
@@ -59,6 +61,9 @@ public class P2 {
 
         externalComponent.addIQHandler(Command.class, PushController.register);
         externalComponent.addIQHandler(PubSub.class, PushController.push);
+
+        externalComponent.getManager(ServiceDiscoveryManager.class).setEnabled(false);
+        externalComponent.disableFeature(Muc.NAMESPACE);
 
         connectAndKeepRetrying(externalComponent);
     }
