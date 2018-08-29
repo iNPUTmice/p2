@@ -17,7 +17,7 @@ Here is a quick description of how this relationship is set up.
 * The app server then generates a random string (Node ID in the language of the XEP) and stores a combination of the FCM Token, the node id, the domain of the account (not the entire account) and a hashed string of the account jid + the secure device id. Since the account jid is essentially *salted* with the secure device id the app server operator won’t be able to reverse the account jids by looking at the database.
 The node id is sent back to the client.
 
-```
+```xml
 <iq from="xiaomia1@jabber.de/Conversations.sAdA" id="cXo5bNCF6wgD" to="p2.siacs.eu" type="set">
   <command xmlns="http://jabber.org/protocol/commands" action="execute" node="register-push-fcm">
     <x xmlns="jabber:x:data" type="submit">
@@ -32,7 +32,7 @@ The node id is sent back to the client.
 </iq>
 ```
 
-```
+```xml
 <iq from="p2.siacs.eu" id="cXo5bNCF6wgD" to="xiaomia1@jabber.de/Conversations.sAdA" type="result">
   <command xmlns="http://jabber.org/protocol/commands" action="complete" node="register-push-fcm" sessionid="1526463999190">
     <x xmlns="jabber:x:data" type="form">
@@ -54,7 +54,7 @@ The node id is sent back to the client.
 
 After registrating with the App server Conversations sends the node ID and the jid of the app server (p2.siacs.eu) to the users server.
 
-```
+```xml
 <iq type='set' id='x42'>
   <enable xmlns='urn:xmpp:push:0' jid='p2.siacs.eu' node='eKxTS5n3bOe0' />
 </iq>
@@ -80,9 +80,10 @@ Upon receiving a push request from a XMPP server, the app server looks up the ha
 
 The hash can then be used by Conversations to determine which of a number of accounts should be woken up. The hash is not reversible but since Conversations has a limited number of accounts and also knows the secure device id it can just calculate all hashes. Google only sees that hash and nothing else.
 
+```json
+{"to":"fcm-token","data":{"account":"ec164939a8485ee6b7f7871071a11c7bb18aead5"}}
 ```
-{'to':'fcm-token','data':{'account':'ec164939a8485ee6b7f7871071a11c7bb18aead5'}}
-```
+
 ### Further optimizations
 
 Currently when receiving a push from a Jabber server the app server takes the domain name and the node id to look up a push token. If the node id is unique enough we don’t actually need the domain as a second identifier. However since push in general is still somewhat experimental I would like to keep the domain information for now to be able to properly debug the app server when something goes wrong and narrow down potential proplems to a specific server.
