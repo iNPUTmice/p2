@@ -160,7 +160,7 @@ Example for ejabberd given below:
 
 ### Building Conversations
 
-Create a file `src/playstore/res/values/push.xml` with the following contents and execute `./gradlew assembleConversationsPlaystoreCompatDebug`
+Create a file `src/conversationsPlaystore/res/values/push.xml` with the following contents and execute `./gradlew assembleConversationsPlaystoreCompatDebug`
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
