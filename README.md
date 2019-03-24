@@ -2,7 +2,7 @@
 An [XEP-0357: Push Notifications](https://xmpp.org/extensions/xep-0357.html) app server that relays push messages between the user’s server and Googles Firebase Cloud Messaging.
 
 ## Background
-Due to restrictions in Firebase Cloud Messaging (and most other push services) only the developer can create push notifications for theirs apps. For this reason a user’s server wouldn’t be able to wake up a user’s device directly but has to proxy that wake up signal through the infrastructure of the app developer.
+Due to restrictions in Firebase Cloud Messaging (and most other push services), only the developer can create push notifications for their apps. For this reason a user’s server wouldn’t be able to wake up a user’s device directly but has to proxy that wake up signal through the infrastructure of the app developer.
 
 Here is a quick description of how this relationship is set up.
 
@@ -52,7 +52,7 @@ The node id is sent back to the client.
 
 ### What Conversations sends to the user’s server
 
-After registrating with the App server Conversations sends the node ID and the jid of the app server (p2.siacs.eu) to the users server.
+After registering with the App server, Conversations sends the node ID and the jid of the app server (p2.siacs.eu) to the user's server.
 
 ```xml
 <iq type='set' id='x42'>
@@ -86,7 +86,7 @@ The hash can then be used by Conversations to determine which of a number of acc
 
 ### Further optimizations
 
-Currently when receiving a push from a Jabber server the app server takes the domain name and the node id to look up a push token. If the node id is unique enough we don’t actually need the domain as a second identifier. However since push in general is still somewhat experimental I would like to keep the domain information for now to be able to properly debug the app server when something goes wrong and narrow down potential proplems to a specific server.
+Currently, when receiving a push from a Jabber server, the app server takes the domain name and the node id to look up a push token. If the node id is unique enough, we don’t actually need the domain as a second identifier. However since push in general is still somewhat experimental, I would like to keep the domain information for now to be able to properly debug the app server when something goes wrong and narrow down potential proplems to a specific server.
 
 The domain will be removed from the database once everything goes smoothly.
 
@@ -129,7 +129,7 @@ systemctl start p2.service
 ### Firebase Cloud Messaging (FCM)
 
 Navigate to the [Firebase Console](https://console.firebase.google.com), create a project, add cloud messaging to the project and create
-an android app.
+an Android app.
 
 You will then need to copy three things from the console:
 
