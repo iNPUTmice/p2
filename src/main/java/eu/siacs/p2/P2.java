@@ -59,8 +59,9 @@ public class P2 {
                 Configuration.getInstance().getPort()
         );
 
-        externalComponent.addIQHandler(Command.class, PushController.register);
-        externalComponent.addIQHandler(PubSub.class, PushController.push);
+        externalComponent.addIQHandler(Command.class, PushController.commandHandler);
+        externalComponent.addIQHandler(PubSub.class, PushController.pubsubHandler);
+
 
         externalComponent.getManager(ServiceDiscoveryManager.class).setEnabled(false);
         externalComponent.disableFeature(Muc.NAMESPACE);

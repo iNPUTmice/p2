@@ -2,44 +2,40 @@ package eu.siacs.p2.pojo;
 
 import eu.siacs.p2.P2;
 import eu.siacs.p2.Utils;
-import eu.siacs.p2.persistance.PrimaryKey;
 import rocks.xmpp.addr.Jid;
 
 public class Target {
 
 
-    @PrimaryKey(replace = true)
     private String device;
+    private String channel;
     private Jid domain;
     private String token;
     private String node;
     private String secret;
 
-    private Target(String device, Jid domain, String token, String node, String secret) {
+    private Target(String device, String channel, Jid domain, String token, String node, String secret) {
         this.device = device;
+        this.channel = channel;
         this.domain = domain;
         this.token = token;
         this.node = node;
         this.secret = secret;
     }
 
-
-    @Override
-    public String toString() {
-        return "Target{" +
-                "device='" + device + '\'' +
-                ", domain=" + domain +
-                ", token='" + token + '\'' +
-                ", node='" + node + '\'' +
-                ", secret='" + secret + '\'' +
-                '}';
-    }
-
     public static Target create(Jid account, String deviceId, String token) {
         String node = Utils.random(3, P2.SECURE_RANDOM);
         String secret = Utils.random(6, P2.SECURE_RANDOM);
         String device = Utils.combineAndHash(account.asBareJid().toEscapedString(),deviceId);
-        return new Target(device, Jid.ofDomain(account.getDomain()), token, node, secret);
+        return new Target(device, "", Jid.ofDomain(account.getDomain()), token, node, secret);
+    }
+
+    public static Target createMuc(Jid account, Jid muc, String deviceId, String token) {
+        String node = Utils.random(3, P2.SECURE_RANDOM);
+        String secret = Utils.random(6, P2.SECURE_RANDOM);
+        String device = Utils.combineAndHash(account.asBareJid().toEscapedString(),deviceId);
+        String channel = Utils.combineAndHash(muc.toEscapedString(), deviceId);
+        return new Target(device, channel, Jid.ofDomain(account.getDomain()), token, node, secret);
     }
 
     public String getNode() {
@@ -60,6 +56,10 @@ public class Target {
 
     public String getDevice() {
         return device;
+    }
+
+    public String getChannel() {
+        return channel;
     }
 
     public String getToken() {

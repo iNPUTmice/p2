@@ -18,13 +18,23 @@ public class Message {
     }
 
     public static Message createHighPriority(Target target, boolean collapse) {
-        return createHighPriority(target.getDevice(), target.getToken(), collapse);
+        return createHighPriority(target.getDevice(), target.getChannel(), target.getToken(), collapse);
     }
 
-    private static Message createHighPriority(String account, String token, boolean collapse) {
+    private static Message createHighPriority(String account, String channel, String token, boolean collapse) {
         final Data data = new Data();
         data.account = account;
-        final String collapseKey = collapse ? account.substring(0, 6) : null;
+        data.channel = channel == null || channel.isEmpty() ? null : channel;
+        final String collapseKey;
+        if (collapse) {
+            if (data.channel == null) {
+                collapseKey = account.substring(0, 6);
+            } else {
+                collapseKey = data.channel.substring(0,6);
+            }
+        } else {
+            collapseKey = null;
+        }
         return new Message(Priority.HIGH, data, token, collapseKey);
     }
 
@@ -35,5 +45,6 @@ public class Message {
 
     public static class Data {
         String account;
+        String channel;
     }
 }

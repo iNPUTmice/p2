@@ -14,17 +14,20 @@ import java.util.HashMap;
 
 public class TargetStore {
 
-    private final Sql2o database;
+    private static final String CREATE_TARGET_TABLE = "create table if not exists target(device CHAR(40) NOT NULL, channel CHAR(40) NOT NULL DEFAULT '', domain varchar(253), token varchar(255), node char(12), secret char(24), primary key(device, channel), index nodeDomain (node,domain));";
 
     private static TargetStore INSTANCE = null;
+    private final Sql2o database;
 
     private TargetStore() {
-        String filename = Configuration.getInstance().getStorageFile(TargetStore.class);
+        final Configuration configuration = Configuration.getInstance();
         HashMap<Class, Converter> converters = new HashMap<>();
         Adapter.register(converters);
         Quirks quirks = new NoQuirks(converters);
-        database = new Sql2o("sqlite:"+filename, null, null, quirks);
-        TableHelper.create(database, Target.class);
+        database = new Sql2o(configuration.getDbUrl(), configuration.getDbUsername(), configuration.getDbPassword(), quirks);
+        try (Connection connection = database.open()) {
+            connection.createQuery(CREATE_TARGET_TABLE).executeUpdate();
+        }
     }
 
 
@@ -37,28 +40,40 @@ public class TargetStore {
 
     public void create(Target target) {
         try (Connection connection = database.open()) {
-            connection.createQuery("INSERT INTO "+TableHelper.name(Target.class)+" (device,domain,token,node,secret) VALUES(:device,:domain,:token,:node,:secret)").bind(target).executeUpdate();
+            connection.createQuery("INSERT INTO target (device,domain,token,node,secret) VALUES(:device,:domain,:token,:node,:secret)").bind(target).executeUpdate();
         }
     }
 
     public Target find(Jid domain, String node) {
         try (Connection connection = database.open()) {
-            return connection.createQuery("select device,domain,token,node,secret from "+TableHelper.name(Target.class)+" where domain=:domain and node=:node limit 1").addParameter("domain",domain).addParameter("node",node).executeAndFetchFirst(Target.class);
+            return connection.createQuery("select device,domain,token,node,secret from target where domain=:domain and node=:node limit 1").addParameter("domain", domain).addParameter("node", node).executeAndFetchFirst(Target.class);
         }
     }
 
-    public Target find(String device) {
+    public Target find(String device, String channel) {
         try (Connection connection = database.open()) {
             return connection
-                    .createQuery("select device,domain,token,node,secret from "+TableHelper.name(Target.class)+" where device=:device")
-                    .addParameter("device",device)
+                    .createQuery("select device,domain,channel,token,node,secret from target where device=:device and channel=:channel")
+                    .addParameter("device", device)
+                    .addParameter("channel", channel)
                     .executeAndFetchFirst(Target.class);
         }
     }
 
-    public void update(Target target) {
+    public boolean update(Target target) {
+        try (Connection connection = database.open()) {
+            return connection.createQuery("update target set token=:token where device=:device and channel=:channel").bind(target).executeUpdate().getResult() == 1;
+        }
+    }
+
+    public boolean delete(String device, String channel) {
         try(Connection connection = database.open()) {
-            connection.createQuery("update "+TableHelper.name(Target.class)+" set token=:token where device=:device").bind(target).executeUpdate();
+            return connection
+                    .createQuery("delete from target where device=:device and channel=:channel")
+                    .addParameter("device",device)
+                    .addParameter("channel",channel)
+                    .executeUpdate()
+                    .getResult() == 1;
         }
     }
 

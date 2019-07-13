@@ -10,7 +10,6 @@ import rocks.xmpp.addr.Jid;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.nio.file.Paths;
 
 public class Configuration {
 
@@ -24,7 +23,22 @@ public class Configuration {
     private boolean collapse = true;
     private String sharedSecret;
     private String fcmAuthKey;
-    private String storagePath = Paths.get("").toAbsolutePath().toString();
+
+    private String dbUrl;
+    private String dbUsername;
+    private String dbPassword;
+
+    public String getDbUrl() {
+        return dbUrl;
+    }
+
+    public String getDbUsername() {
+        return dbUsername;
+    }
+
+    public String getDbPassword() {
+        return dbPassword;
+    }
 
     private Configuration() {
 
@@ -87,10 +101,6 @@ public class Configuration {
 
     public String getFcmAuthKey() {
         return fcmAuthKey;
-    }
-
-    public String getStorageFile(Class clazz) {
-        return new File(storagePath, clazz.getSimpleName() + ".db").getAbsolutePath();
     }
 
     public Jid getJid() {
