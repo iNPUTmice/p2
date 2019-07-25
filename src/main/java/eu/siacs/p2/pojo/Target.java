@@ -6,7 +6,7 @@ import rocks.xmpp.addr.Jid;
 
 public class Target {
 
-
+    private Service service;
     private String device;
     private String channel;
     private Jid domain;
@@ -14,7 +14,8 @@ public class Target {
     private String node;
     private String secret;
 
-    private Target(String device, String channel, Jid domain, String token, String node, String secret) {
+    private Target(Service service, String device, String channel, Jid domain, String token, String node, String secret) {
+        this.service = service;
         this.device = device;
         this.channel = channel;
         this.domain = domain;
@@ -23,19 +24,23 @@ public class Target {
         this.secret = secret;
     }
 
-    public static Target create(Jid account, String deviceId, String token) {
+    public static Target create(Service service, Jid account, String deviceId, String token) {
         String node = Utils.random(3, P2.SECURE_RANDOM);
         String secret = Utils.random(6, P2.SECURE_RANDOM);
-        String device = Utils.combineAndHash(account.asBareJid().toEscapedString(),deviceId);
-        return new Target(device, "", Jid.ofDomain(account.getDomain()), token, node, secret);
+        String device = Utils.combineAndHash(account.asBareJid().toEscapedString(), deviceId);
+        return new Target(service, device, "", Jid.ofDomain(account.getDomain()), token, node, secret);
     }
 
-    public static Target createMuc(Jid account, Jid muc, String deviceId, String token) {
+    public static Target createMuc(Service service, Jid account, Jid muc, String deviceId, String token) {
         String node = Utils.random(3, P2.SECURE_RANDOM);
         String secret = Utils.random(6, P2.SECURE_RANDOM);
-        String device = Utils.combineAndHash(account.asBareJid().toEscapedString(),deviceId);
+        String device = Utils.combineAndHash(account.asBareJid().toEscapedString(), deviceId);
         String channel = Utils.combineAndHash(muc.toEscapedString(), deviceId);
-        return new Target(device, channel, Jid.ofDomain(account.getDomain()), token, node, secret);
+        return new Target(service, device, channel, Jid.ofDomain(account.getDomain()), token, node, secret);
+    }
+
+    public Service getService() {
+        return service;
     }
 
     public String getNode() {

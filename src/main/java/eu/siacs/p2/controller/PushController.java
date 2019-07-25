@@ -1,10 +1,11 @@
 package eu.siacs.p2.controller;
 
 import eu.siacs.p2.Configuration;
+import eu.siacs.p2.PushService;
+import eu.siacs.p2.PushServiceManager;
 import eu.siacs.p2.Utils;
-import eu.siacs.p2.fcm.FcmService;
-import eu.siacs.p2.fcm.Message;
 import eu.siacs.p2.persistance.TargetStore;
+import eu.siacs.p2.pojo.Service;
 import eu.siacs.p2.pojo.Target;
 import rocks.xmpp.addr.Jid;
 import rocks.xmpp.core.stanza.IQHandler;
@@ -14,22 +15,20 @@ import rocks.xmpp.extensions.commands.model.Command;
 import rocks.xmpp.extensions.data.model.DataForm;
 import rocks.xmpp.extensions.pubsub.model.PubSub;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 public class PushController {
 
-    private static final String COMMAND_NODE_REGISTER_FCM = "register-push-fcm";
-    private static final String COMMAND_NODE_UNREGISTER_FCM = "unregister-push-fcm";
+    private static final String COMMAND_NODE_REGISTER_PREFIX = "register-push-";
+    private static final String COMMAND_NODE_UNREGISTER_PREFIX = "unregister-push-";
 
     public static IQHandler commandHandler = (iq -> {
         final Command command = iq.getExtension(Command.class);
         if (command != null && command.getAction() == Command.Action.EXECUTE) {
-            if (COMMAND_NODE_REGISTER_FCM.equals(command.getNode())) {
+            final String node = command.getNode();
+            if (node != null && node.startsWith(COMMAND_NODE_REGISTER_PREFIX)) {
                 return register(iq, command);
-            } else if (COMMAND_NODE_UNREGISTER_FCM.equals(command.getNode())) {
+            } else if (node != null && node.startsWith(COMMAND_NODE_UNREGISTER_PREFIX)) {
                 return unregister(iq, command);
             }
         }
@@ -40,15 +39,21 @@ public class PushController {
         if (pubSub != null && iq.getType() == IQ.Type.SET) {
             final String node = pubSub.getPublish() != null ? pubSub.getPublish().getNode() : null;
             final Jid jid = iq.getFrom();
-            final String secret = pubSub.getPublishOptions() != null ? pubSub.getPublishOptions().findValue("secret") : null;
+            final DataForm data = pubSub.getPublishOptions();
+            final String secret = data != null ? data.findValue("secret") : null;
 
             if (node != null && secret != null && jid.isBareJid()) {
                 final Jid domain = Jid.ofDomain(jid.getDomain());
                 final Target target = TargetStore.getInstance().find(domain, node);
                 if (target != null) {
                     if (secret.equals(target.getSecret())) {
-                        final Message message = Message.createHighPriority(target, Configuration.getInstance().isCollapse());
-                        if (FcmService.getInstance().push(message)) {
+                        final PushService pushService;
+                        try {
+                            pushService = PushServiceManager.getPushServiceInstance(target.getService());
+                        } catch (IllegalStateException e) {
+                            return iq.createError(Condition.INTERNAL_SERVER_ERROR);
+                        }
+                        if (pushService.push(target)) {
                             return iq.createResult();
                         } else {
                             return iq.createError(Condition.RECIPIENT_UNAVAILABLE);
@@ -75,11 +80,11 @@ public class PushController {
         final Jid from = iq.getFrom().asBareJid();
         if (optionalData.isPresent()) {
             final DataForm data = optionalData.get();
-            final String androidId = data.findValue("android-id");
+            final String deviceId = findDeviceId(data);
             final String token = data.findValue("token");
             final Jid muc = data.findValueAsJid("muc");
 
-            if (isNullOrEmpty(token) || isNullOrEmpty(androidId)) {
+            if (isNullOrEmpty(token) || isNullOrEmpty(deviceId)) {
                 return iq.createError(Condition.BAD_REQUEST);
             }
 
@@ -87,10 +92,17 @@ public class PushController {
                 return iq.createError(Condition.BAD_REQUEST);
             }
 
-            final String device = Utils.combineAndHash(from.toEscapedString(), androidId);
-            final String channel = muc == null ? "" : Utils.combineAndHash(muc.toEscapedString(), androidId);
+            final String device = Utils.combineAndHash(from.toEscapedString(), deviceId);
+            final String channel = muc == null ? "" : Utils.combineAndHash(muc.toEscapedString(), deviceId);
 
-            Target target = TargetStore.getInstance().find(device, channel);
+            final Service service;
+            try {
+                service = findService(COMMAND_NODE_REGISTER_PREFIX, command.getNode());
+            } catch (IllegalArgumentException e) {
+                return iq.createError(Condition.ITEM_NOT_FOUND);
+            }
+
+            Target target = TargetStore.getInstance().find(service, device, channel);
 
             if (target != null) {
                 if (target.setToken(token)) {
@@ -100,9 +112,9 @@ public class PushController {
                 }
             } else {
                 if (muc == null) {
-                    target = Target.create(from, androidId, token);
+                    target = Target.create(service, from, deviceId, token);
                 } else {
-                    target = Target.createMuc(from, muc, androidId, token);
+                    target = Target.createMuc(service, from, muc, deviceId, token);
                 }
                 TargetStore.getInstance().create(target);
             }
@@ -117,8 +129,31 @@ public class PushController {
         }
     }
 
+    private static String findDeviceId(DataForm data) {
+        final String deviceId = data.findValue("device-id");
+        if (isNullOrEmpty(deviceId)) {
+            return data.findValue("android-id");
+        }
+        return deviceId;
+    }
+
     private static boolean isNullOrEmpty(String value) {
         return value == null || value.trim().isEmpty();
+    }
+
+    private static Service findService(final String prefix, final String node) {
+        if (isNullOrEmpty(node)) {
+            throw new IllegalArgumentException("Command node can not be null or empty");
+        }
+        if (prefix.length() >= node.length()) {
+            throw new IllegalArgumentException("Command node too short");
+        }
+        final String service = node.substring(prefix.length()).toUpperCase(Locale.US);
+        try {
+            return Service.valueOf(service);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException(service + " is not a known push service");
+        }
     }
 
     private static DataForm createRegistryResponseDataForm(String node, String secret) {
@@ -137,12 +172,12 @@ public class PushController {
         final Jid from = iq.getFrom().asBareJid();
         if (optionalData.isPresent()) {
             final DataForm data = optionalData.get();
-            final String androidId = data.findValue("android-id");
+            final String deviceId = findDeviceId(data);
             final String channel = data.findValue("channel");
-            if (isNullOrEmpty(channel) || isNullOrEmpty(androidId)) {
+            if (isNullOrEmpty(channel) || isNullOrEmpty(deviceId)) {
                 return iq.createError(Condition.BAD_REQUEST);
             }
-            final String device = Utils.combineAndHash(from.toEscapedString(), androidId);
+            final String device = Utils.combineAndHash(from.toEscapedString(), deviceId);
             if (TargetStore.getInstance().delete(device, channel)) {
                 final Command result = new Command(command.getNode(), Command.Action.COMPLETE);
                 return iq.createResult(result);
