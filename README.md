@@ -117,9 +117,9 @@ There is currently no way to reload the configuration file at runtime but you ca
 
 ### Database
 
-Since version 0.3 the Conversations Push Proxy requires a database (drivers for MariaDB are included by default but you can easily change `pom.xml` to use include other drivers as well.)
+Since version 0.3 the Conversations Push Proxy requires a database (drivers for MariaDB are included by default but you can easily change `pom.xml` to include other drivers as well.)
 
-The necessary tables will be created automatically on first use so you just have to create a database and a user for example by starting `mysql` and typing:
+The necessary tables will be created automatically on first use so you just have to create a database and a user. You can do this by starting `mysql` and typing:
 ```sql
 create user 'p2'@'localhost' identified by 'secret';
 grant all privileges on p2.* to 'p2'@'localhost';
