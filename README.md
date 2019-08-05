@@ -101,8 +101,9 @@ mvn package
 
 ### Manual Install
 ```
-cp target/p2-0.1.jar /opt
-cp p2.conf.example /etc/p2.conf
+cp target/p2-0.3.jar /opt
+mkdir /etc/p2
+cp p2.conf.example /etc/p2/config.json
 mkdir /var/lib/p2
 useradd -d /var/lib/p2 -r p2
 chown -R p2:p2 /var/lib/p2
@@ -111,6 +112,8 @@ systemctl daemon-reload
 systemctl enable p2.service
 systemctl start p2.service
 ```
+
+There is currently no way to reload the configuration file at runtime but you can always restart the service with `systemctl restart p2.service`.
 
 ## Installation using distro packages
 
@@ -133,7 +136,7 @@ an Android app.
 
 You will then need to copy three things from the console:
 
-1. the server key and use it for `p2.conf` as `fcmAuthKey`.
+1. the server key and use it for `p2.conf` as `fcm/authKey`.
 2. the sender-id and use it for `push.xml` as `gcm_defaultSenderId`.
 3. the app-id and use it for `push.xml` as `google_app_id`.
 

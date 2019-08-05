@@ -10,6 +10,7 @@
     "apns": {
         "certificate": "/etc/p2/apns_certificate.pem",
         "privateKey": "/etc/p2/apns_privatekey.pem",
-        "bundleId": "com.example.xmpp"
+        "bundleId": "com.example.xmpp",
+        "sandbox": false
     }
 }
