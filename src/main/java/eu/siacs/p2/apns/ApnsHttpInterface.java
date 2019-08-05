@@ -1,10 +1,7 @@
 package eu.siacs.p2.apns;
 
 import retrofit2.Call;
-import retrofit2.http.Body;
-import retrofit2.http.Headers;
-import retrofit2.http.POST;
-import retrofit2.http.Path;
+import retrofit2.http.*;
 
 public interface ApnsHttpInterface {
 
@@ -13,12 +10,12 @@ public interface ApnsHttpInterface {
             "apns-priority: 10"
     })
     @POST("/3/device/{token}")
-    Call<Result> sendAlert(@Path("token") String token, @Body Notification notification);
+    Call<Void> sendAlert(@Path("token") String token, @Header("apns-topic") String topic, @Body Notification notification);
 
     @Headers({
             "apns-push-type: background",
             "apns-priority: 5"
     })
     @POST("/3/device/{token}")
-    Call<Result> sendBackground(@Path("token") String token, @Body Notification notification);
+    Call<Void> sendBackground(@Path("token") String token, @Header("apns-topic") String topic, @Body Notification notification);
 }

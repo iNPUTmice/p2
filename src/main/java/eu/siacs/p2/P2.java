@@ -54,8 +54,6 @@ public class P2 {
 
         Security.insertProviderAt(Conscrypt.newProvider(), 1);
 
-        //PushServiceManager.getPushServiceInstance(Service.APNS).push(Target.create(Service.APNS, Jid.of("daniel@gultsch.de"),"",""), true);
-
         final XmppSessionConfiguration.Builder builder = XmppSessionConfiguration.builder();
 
         builder.extensions(Extension.of(Notification.class));
