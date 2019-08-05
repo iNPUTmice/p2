@@ -7,12 +7,14 @@ import eu.siacs.p2.Utils;
 import eu.siacs.p2.persistance.TargetStore;
 import eu.siacs.p2.pojo.Service;
 import eu.siacs.p2.pojo.Target;
+import eu.siacs.p2.xmpp.extensions.push.Notification;
 import rocks.xmpp.addr.Jid;
 import rocks.xmpp.core.stanza.IQHandler;
 import rocks.xmpp.core.stanza.model.IQ;
 import rocks.xmpp.core.stanza.model.errors.Condition;
 import rocks.xmpp.extensions.commands.model.Command;
 import rocks.xmpp.extensions.data.model.DataForm;
+import rocks.xmpp.extensions.pubsub.model.Item;
 import rocks.xmpp.extensions.pubsub.model.PubSub;
 
 import java.util.*;
@@ -35,12 +37,15 @@ public class PushController {
         return iq.createError(Condition.BAD_REQUEST);
     });
     public static IQHandler pubsubHandler = (iq -> {
-        PubSub pubSub = iq.getExtension(PubSub.class);
+        final PubSub pubSub = iq.getExtension(PubSub.class);
         if (pubSub != null && iq.getType() == IQ.Type.SET) {
-            final String node = pubSub.getPublish() != null ? pubSub.getPublish().getNode() : null;
+            final PubSub.Publish publish = pubSub.getPublish();
+            final String node = publish != null ? publish.getNode() : null;
             final Jid jid = iq.getFrom();
-            final DataForm data = pubSub.getPublishOptions();
-            final String secret = data != null ? data.findValue("secret") : null;
+            final DataForm publishOptions = pubSub.getPublishOptions();
+            final String secret = publishOptions != null ? publishOptions.findValue("secret") : null;
+            final DataForm pushSummary = findPushSummary(publish);
+            final boolean hasLastMessageBody = pushSummary != null && !isNullOrEmpty(pushSummary.findValue("last-message-body"));
 
             if (node != null && secret != null && jid.isBareJid()) {
                 final Jid domain = Jid.ofDomain(jid.getDomain());
@@ -51,9 +56,10 @@ public class PushController {
                         try {
                             pushService = PushServiceManager.getPushServiceInstance(target.getService());
                         } catch (IllegalStateException e) {
+                            e.printStackTrace();
                             return iq.createError(Condition.INTERNAL_SERVER_ERROR);
                         }
-                        if (pushService.push(target)) {
+                        if (pushService.push(target, hasLastMessageBody)) {
                             return iq.createResult();
                         } else {
                             return iq.createError(Condition.RECIPIENT_UNAVAILABLE);
@@ -71,6 +77,16 @@ public class PushController {
         }
         return iq.createError(Condition.BAD_REQUEST);
     });
+
+    private static DataForm findPushSummary(final PubSub.Publish publish) {
+        final Item item = publish == null ? null : publish.getItem();
+        final Object payload = item == null ? null : item.getPayload();
+        if (payload instanceof Notification) {
+            return ((Notification) payload).getPushSummary();
+        } else {
+            return null;
+        }
+    }
 
     private static IQ register(final IQ iq, final Command command) {
         final Optional<DataForm> optionalData = command.getPayloads().stream()
@@ -171,6 +187,14 @@ public class PushController {
                 .findFirst();
         final Jid from = iq.getFrom().asBareJid();
         if (optionalData.isPresent()) {
+
+            final Service service;
+            try {
+                service = findService(COMMAND_NODE_UNREGISTER_PREFIX, command.getNode());
+            } catch (IllegalArgumentException e) {
+                return iq.createError(Condition.ITEM_NOT_FOUND);
+            }
+
             final DataForm data = optionalData.get();
             final String deviceId = findDeviceId(data);
             final String channel = data.findValue("channel");

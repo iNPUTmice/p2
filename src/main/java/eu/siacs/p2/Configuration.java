@@ -5,6 +5,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import de.gultsch.xmpp.addr.adapter.Adapter;
+import eu.siacs.p2.apns.ApnsPushService;
+import eu.siacs.p2.fcm.FcmPushService;
 import rocks.xmpp.addr.Jid;
 
 import java.io.File;
@@ -20,9 +22,9 @@ public class Configuration {
     private int port = 5348; //prosody is 5347
     private Jid jid;
     private boolean debug = false;
-    private boolean collapse = true;
     private String sharedSecret;
-    private String fcmAuthKey;
+    private FcmPushService.FcmConfiguration fcm;
+    private ApnsPushService.ApnsConfiguration apns;
 
     private String dbUrl;
     private String dbUsername;
@@ -79,8 +81,12 @@ public class Configuration {
         return debug;
     }
 
-    public boolean isCollapse() {
-        return collapse;
+    public FcmPushService.FcmConfiguration getFcmConfiguration() {
+        return this.fcm;
+    }
+
+    public ApnsPushService.ApnsConfiguration getApnsConfiguration() {
+        return this.apns;
     }
 
     public String getName() {
@@ -99,9 +105,6 @@ public class Configuration {
         return sharedSecret;
     }
 
-    public String getFcmAuthKey() {
-        return fcmAuthKey;
-    }
 
     public Jid getJid() {
         return jid;

@@ -3,7 +3,12 @@
     "port": 5347,
     "jid": "p2.yourserver.tld",
     "sharedSecret": "verysecure",
-    "fcmAuthKey": "copyfromapiconsole",
-    "storagePath": "/var/lib/p2/",
-    "debug": false
+    "debug": false,
+    "fcm": {
+        "authKey": "copyFromApiConsole"
+    },
+    "apns": {
+        "certificate": "/etc/p2/apns_certificate.pem",
+        "privateKey": "/etc/p2/apns_privatekey.pem"
+    }
 }
