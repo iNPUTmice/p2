@@ -4,6 +4,9 @@
     "jid": "p2.yourserver.tld",
     "sharedSecret": "verysecure",
     "debug": false,
+    "dbUrl": "jdbc:mariadb://localhost:3306/p2?characterEncoding=utf8",
+    "dbUsername": "p2",
+    "dbPassword": "secret",
     "fcm": {
         "authKey": "copyFromApiConsole"
     },
