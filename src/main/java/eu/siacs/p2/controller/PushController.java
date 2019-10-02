@@ -134,9 +134,12 @@ public class PushController {
                 }
                 TargetStore.getInstance().create(target);
             }
+
             final Command result = new Command(command.getNode(),
                     String.valueOf(System.currentTimeMillis()),
-                    Command.Action.COMPLETE,
+                    Command.Status.COMPLETED,
+                    null,
+                    null,
                     Collections.singletonList(createRegistryResponseDataForm(target.getNode(), target.getSecret()))
             );
             return iq.createResult(result);
