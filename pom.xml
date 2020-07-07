@@ -30,6 +30,12 @@
         </dependency>
 
         <dependency>
+            <groupId>rocks.xmpp</groupId>
+            <artifactId>xmpp-addr</artifactId>
+            <version>0.8.0</version>
+        </dependency>
+             
+        <dependency>
             <groupId>com.github.inputmice</groupId>
             <artifactId>xmpp-addr-adapter</artifactId>
             <version>0.1</version>
