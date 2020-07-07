@@ -2,7 +2,6 @@ package eu.siacs.p2.fcm;
 
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.GsonBuilder;
-import de.gultsch.xmpp.addr.adapter.Adapter;
 import eu.siacs.p2.Configuration;
 import eu.siacs.p2.PushService;
 import eu.siacs.p2.pojo.Target;
@@ -24,7 +23,6 @@ public class FcmPushService implements PushService {
 
     public FcmPushService() {
         final GsonBuilder gsonBuilder = new GsonBuilder();
-        Adapter.register(gsonBuilder);
         gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
 
         final Retrofit.Builder retrofitBuilder = new Retrofit.Builder();

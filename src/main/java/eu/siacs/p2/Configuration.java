@@ -4,7 +4,6 @@ package eu.siacs.p2;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
-import de.gultsch.xmpp.addr.adapter.Adapter;
 import eu.siacs.p2.apns.ApnsPushService;
 import eu.siacs.p2.fcm.FcmPushService;
 import rocks.xmpp.addr.Jid;
@@ -20,7 +19,7 @@ public class Configuration {
 
     private String host = "localhost";
     private int port = 5348; //prosody is 5347
-    private Jid jid;
+    private String jid;
     private boolean debug = false;
     private String sharedSecret;
     private FcmPushService.FcmConfiguration fcm;
@@ -65,7 +64,6 @@ public class Configuration {
 
     private static Configuration load() {
         final GsonBuilder gsonBuilder = new GsonBuilder();
-        Adapter.register(gsonBuilder);
         final Gson gson = gsonBuilder.create();
         try {
             System.out.println("Reading configuration from " + FILE.getAbsolutePath());
@@ -90,7 +88,7 @@ public class Configuration {
     }
 
     public String getName() {
-        return jid.toEscapedString();
+        return jid;
     }
 
     public String getHost() {
@@ -106,7 +104,7 @@ public class Configuration {
     }
 
 
-    public Jid getJid() {
+    public String getJid() {
         return jid;
     }
 }

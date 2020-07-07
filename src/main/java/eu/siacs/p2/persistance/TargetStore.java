@@ -1,7 +1,8 @@
 package eu.siacs.p2.persistance;
 
-import de.gultsch.xmpp.addr.adapter.Adapter;
+import com.google.common.collect.ImmutableMap;
 import eu.siacs.p2.Configuration;
+import eu.siacs.p2.persistance.converter.JidConverter;
 import eu.siacs.p2.pojo.Service;
 import eu.siacs.p2.pojo.Target;
 import org.sql2o.Connection;
@@ -11,20 +12,31 @@ import org.sql2o.quirks.NoQuirks;
 import org.sql2o.quirks.Quirks;
 import rocks.xmpp.addr.Jid;
 
-import java.util.HashMap;
+import java.util.Map;
 
 public class TargetStore {
 
+    private static final Map<Class, Converter> CONVERTERS;
     private static final String CREATE_TARGET_TABLE = "create table if not exists target(service char(4), device CHAR(40) NOT NULL, channel CHAR(40) NOT NULL DEFAULT '', domain varchar(253), token varchar(255), node char(12), secret char(24), primary key(device, channel), index nodeDomain (node,domain));";
-
     private static TargetStore INSTANCE = null;
+
+    static {
+        try {
+            CONVERTERS = new ImmutableMap.Builder<Class, Converter>()
+                    .put(Jid.class, new JidConverter())
+                    .put(Class.forName("rocks.xmpp.addr.FullJid"), new JidConverter())
+                    .put(Class.forName("rocks.xmpp.addr.FullJid$1"), new JidConverter())
+                    .build();
+        } catch (final ClassNotFoundException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
     private final Sql2o database;
 
     private TargetStore() {
         final Configuration configuration = Configuration.getInstance();
-        HashMap<Class, Converter> converters = new HashMap<>();
-        Adapter.register(converters);
-        Quirks quirks = new NoQuirks(converters);
+        final Quirks quirks = new NoQuirks(CONVERTERS);
         database = new Sql2o(configuration.getDbUrl(), configuration.getDbUsername(), configuration.getDbPassword(), quirks);
         try (Connection connection = database.open()) {
             connection.createQuery(CREATE_TARGET_TABLE).executeUpdate();
@@ -69,11 +81,11 @@ public class TargetStore {
     }
 
     public boolean delete(String device, String channel) {
-        try(Connection connection = database.open()) {
+        try (Connection connection = database.open()) {
             return connection
                     .createQuery("delete from target where device=:device and channel=:channel")
-                    .addParameter("device",device)
-                    .addParameter("channel",channel)
+                    .addParameter("device", device)
+                    .addParameter("channel", channel)
                     .executeUpdate()
                     .getResult() == 1;
         }

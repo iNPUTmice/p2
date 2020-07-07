@@ -2,7 +2,6 @@ package eu.siacs.p2.apns;
 
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.GsonBuilder;
-import de.gultsch.xmpp.addr.adapter.Adapter;
 import eu.siacs.p2.Configuration;
 import eu.siacs.p2.PushService;
 import eu.siacs.p2.pojo.Target;
@@ -34,7 +33,6 @@ public class ApnsPushService implements PushService {
 
     public ApnsPushService() {
         final GsonBuilder gsonBuilder = new GsonBuilder();
-        Adapter.register(gsonBuilder);
         gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_DASHES);
 
         final SSLContext sslContext;
