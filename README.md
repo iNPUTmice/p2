@@ -94,7 +94,7 @@ The domain will be removed from the database once everything goes smoothly.
 
 ### Build from source
 ```
-git checkout https://github.com/iNPUTmice/p2.git
+git clone https://github.com/iNPUTmice/p2.git
 cd p2
 mvn package
 ```
