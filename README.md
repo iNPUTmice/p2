@@ -147,7 +147,7 @@ an Android app.
 
 You will then need to copy three things from the console:
 
-1. the server key and use it for `p2.conf` as `fcm/authKey`.
+1. the `service account JSON file` and reference it in `p2.conf` as `fcm/serviceAccountFile`.
 2. the sender-id and use it for `push.xml` as `gcm_defaultSenderId`.
 3. the app-id and use it for `push.xml` as `google_app_id`.
 

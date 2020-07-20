@@ -8,7 +8,7 @@
     "dbUsername": "p2",
     "dbPassword": "secret",
     "fcm": {
-        "authKey": "copyFromApiConsole"
+        "serviceAccountFile": "/etc/p2/service-account-file.json"
     },
     "apns": {
         "certificate": "/etc/p2/apns_certificate.pem",
