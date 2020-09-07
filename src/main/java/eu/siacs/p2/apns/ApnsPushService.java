@@ -37,7 +37,7 @@ public class ApnsPushService implements PushService {
 
         final SSLContext sslContext;
         try {
-            sslContext = SSLContext.getInstance("TLSv1.2");
+            sslContext = SSLContext.getInstance("TLSv1.3");
             sslContext.init(new KeyManager[]{new ClientCertificateKeyManager()}, null, null);
         } catch (NoSuchAlgorithmException | KeyManagementException e) {
             throw new AssertionError(e);
