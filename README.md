@@ -182,5 +182,7 @@ Create a file `src/conversationsPlaystore/res/values/push.xml` with the followin
   <string name="app_server">p2.yourserver.tld</string>
   <string name="gcm_defaultSenderId" translatable="false">copyfromapiconsole</string>
   <string name="google_app_id">1:copyfromapiconsole:android:copyfromapiconsole</string>
+  <string name="project_id" translatable="false">copyfromapiconsole</string>
+  <string name="google_api_key" translatable="false">copyfromapiconsole</string>
 </resources>
 ```
