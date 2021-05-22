@@ -42,7 +42,7 @@ public class P2 {
     }
 
     private static void main(CommandLine commandLine) {
-        String config = commandLine.getOptionValue('c');
+        final String config = commandLine.getOptionValue('c');
         if (config != null) {
             try {
                 Configuration.setFilename(config);
@@ -58,16 +58,20 @@ public class P2 {
 
         builder.extensions(Extension.of(Notification.class));
 
-        if (Configuration.getInstance().isDebug()) {
+        final Configuration configuration = Configuration.getInstance();
+
+        configuration.validate();
+
+        if (configuration.isDebug()) {
             builder.debugger(ConsoleDebugger.class);
         }
 
         final ExternalComponent externalComponent = ExternalComponent.create(
-                Configuration.getInstance().getName(),
-                Configuration.getInstance().getSharedSecret(),
+                configuration.getName(),
+                configuration.getSharedSecret(),
                 builder.build(),
-                Configuration.getInstance().getHost(),
-                Configuration.getInstance().getPort()
+                configuration.getHost(),
+                configuration.getPort()
         );
 
         externalComponent.addIQHandler(Command.class, PushController.commandHandler);

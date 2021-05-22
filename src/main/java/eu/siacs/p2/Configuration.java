@@ -107,4 +107,18 @@ public class Configuration {
     public String getJid() {
         return jid;
     }
+
+    public void validate() {
+        if (fcm != null) {
+            final String filename = fcm.getServiceAccountFile();
+            if (filename == null) {
+                throw new IllegalStateException("FCM enabled but no service account file set");
+            }
+            final File file = new File(filename);
+            if (file.exists()) {
+                return;
+            }
+            throw new IllegalStateException(String.format("%s does not exist", file.getAbsolutePath()));
+        }
+    }
 }
