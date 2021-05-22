@@ -56,7 +56,12 @@ After registering with the App server, Conversations sends the node ID and the j
 
 ```xml
 <iq type='set' id='x42'>
-  <enable xmlns='urn:xmpp:push:0' jid='p2.siacs.eu' node='eKxTS5n3bOe0' />
+  <enable xmlns='urn:xmpp:push:0' jid='p2.siacs.eu' node='eKxTS5n3bOe0'>
+    <x xmlns='jabber:x:data' type='submit'>
+      <field var='FORM_TYPE'><value>http://jabber.org/protocol/pubsub#publish-options</value></field>
+      <field var='secret'><value>KK4+H5WMfpRG/2zCbuKq6wpX</value></field>
+    </x>
+  </enable>
 </iq>
 ```
 
