@@ -6,12 +6,10 @@ import java.io.IOException;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
-import com.google.firebase.messaging.AndroidConfig;
-import com.google.firebase.messaging.FirebaseMessaging;
-import com.google.firebase.messaging.FirebaseMessagingException;
-import com.google.firebase.messaging.Message;
+import com.google.firebase.messaging.*;
 import eu.siacs.p2.Configuration;
 import eu.siacs.p2.PushService;
+import eu.siacs.p2.TargetDeviceNotFoundException;
 import eu.siacs.p2.pojo.Target;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,20 +20,18 @@ public class FcmPushService implements PushService {
 
     public FcmPushService() {
         final FcmConfiguration config = Configuration.getInstance().getFcmConfiguration();
-
         try {
-            FirebaseOptions options = new FirebaseOptions.Builder()
+            FirebaseOptions options = FirebaseOptions.builder()
                     .setCredentials(GoogleCredentials.fromStream(new FileInputStream(config.getServiceAccountFile())))
                     .build();
-
             FirebaseApp.initializeApp(options);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        } catch (final IOException e) {
+            LOGGER.error("Unable to initialize firebase app", e);
         }
     }
 
     @Override
-    public boolean push(Target target, boolean highPriority) {
+    public boolean push(Target target, boolean highPriority) throws TargetDeviceNotFoundException {
         final FcmConfiguration config = Configuration.getInstance().getFcmConfiguration();
         String account = target.getDevice();
 
@@ -62,13 +58,17 @@ public class FcmPushService implements PushService {
         return push(message.build());
     }
 
-    private boolean push(Message message) {
+    private boolean push(Message message) throws TargetDeviceNotFoundException {
         try {
             FirebaseMessaging.getInstance().send(message);
             return true;
-        } catch (FirebaseMessagingException e) {
-            LOGGER.warn("push to FCM failed", e);
-            return false;
+        } catch (final FirebaseMessagingException e) {
+            if (e.getMessagingErrorCode() == MessagingErrorCode.UNREGISTERED) {
+                throw new TargetDeviceNotFoundException(e);
+            } else {
+                LOGGER.warn("push to FCM failed with unknown messaging error code", e);
+                return false;
+            }
         }
     }
 

@@ -1,9 +1,6 @@
 package eu.siacs.p2.controller;
 
-import eu.siacs.p2.Configuration;
-import eu.siacs.p2.PushService;
-import eu.siacs.p2.PushServiceManager;
-import eu.siacs.p2.Utils;
+import eu.siacs.p2.*;
 import eu.siacs.p2.persistance.TargetStore;
 import eu.siacs.p2.pojo.Service;
 import eu.siacs.p2.pojo.Target;
@@ -55,14 +52,18 @@ public class PushController {
                         final PushService pushService;
                         try {
                             pushService = PushServiceManager.getPushServiceInstance(target.getService());
-                        } catch (IllegalStateException e) {
+                        } catch (final IllegalStateException e) {
                             e.printStackTrace();
                             return iq.createError(Condition.INTERNAL_SERVER_ERROR);
                         }
-                        if (pushService.push(target, hasLastMessageBody)) {
-                            return iq.createResult();
-                        } else {
-                            return iq.createError(Condition.RECIPIENT_UNAVAILABLE);
+                        try {
+                            if (pushService.push(target, hasLastMessageBody)) {
+                                return iq.createResult();
+                            } else {
+                                return iq.createError(Condition.RECIPIENT_UNAVAILABLE);
+                            }
+                        } catch (TargetDeviceNotFoundException e) {
+                            return iq.createError(Condition.ITEM_NOT_FOUND);
                         }
 
                     } else {
