@@ -34,6 +34,8 @@ public class PushController {
         return iq.createError(Condition.BAD_REQUEST);
     });
     public static IQHandler pubsubHandler = (iq -> {
+
+
         final PubSub pubSub = iq.getExtension(PubSub.class);
         if (pubSub != null && iq.getType() == IQ.Type.SET) {
             final PubSub.Publish publish = pubSub.getPublish();

@@ -31,7 +31,10 @@ public class ClientCertificateKeyManager implements X509KeyManager {
 
     private final CertificateFactory certificateFactory;
 
-    ClientCertificateKeyManager() {
+    private final ApnsPushService.ApnsConfiguration apnsConfiguration;
+
+    ClientCertificateKeyManager(final ApnsPushService.ApnsConfiguration apnsConfiguration) {
+        this.apnsConfiguration = apnsConfiguration;
         try {
             certificateFactory = CertificateFactory.getInstance("X.509");
         } catch (CertificateException e) {
@@ -61,8 +64,7 @@ public class ClientCertificateKeyManager implements X509KeyManager {
 
     @Override
     public X509Certificate[] getCertificateChain(String alias) {
-        final ApnsPushService.ApnsConfiguration config = Configuration.getInstance().getApnsConfiguration();
-        final String certificateFile = config == null ? null : config.getCertificate();
+        final String certificateFile = apnsConfiguration.getCertificate();
         if (certificateFile == null) {
             LOGGER.error("No client certificate configured");
             return new X509Certificate[0];
@@ -87,8 +89,7 @@ public class ClientCertificateKeyManager implements X509KeyManager {
     @Override
     public PrivateKey getPrivateKey(String s) {
         //openssl pkcs8 -topk8 -inform PEM -outform PEM -nocrypt -in /home/daniel/Projects/letsencrypt.sh/certs/gultsch.de/privkey.pem -out privatekey.pem
-        final ApnsPushService.ApnsConfiguration config = Configuration.getInstance().getApnsConfiguration();
-        final String privateKeyFile = config == null ? null : config.getPrivateKey();
+        final String privateKeyFile = apnsConfiguration.getPrivateKey();
         if (privateKeyFile == null) {
             LOGGER.error("Unable to load private key for client certificate authentication. No key configured");
             return null;

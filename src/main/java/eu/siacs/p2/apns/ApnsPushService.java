@@ -30,15 +30,18 @@ public class ApnsPushService implements PushService {
 
     private final ApnsHttpInterface httpInterface;
 
+    private final ApnsConfiguration configuration;
 
-    public ApnsPushService() {
+
+    public ApnsPushService(final ApnsConfiguration configuration) {
+        this.configuration = configuration;
         final GsonBuilder gsonBuilder = new GsonBuilder();
         gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_DASHES);
 
         final SSLContext sslContext;
         try {
             sslContext = SSLContext.getInstance("TLSv1.2");
-            sslContext.init(new KeyManager[]{new ClientCertificateKeyManager()}, null, null);
+            sslContext.init(new KeyManager[]{new ClientCertificateKeyManager(configuration)}, null, null);
         } catch (NoSuchAlgorithmException | KeyManagementException e) {
             throw new AssertionError(e);
         }
@@ -49,8 +52,6 @@ public class ApnsPushService implements PushService {
         }
         final OkHttpClient.Builder okHttpBuilder = new OkHttpClient.Builder();
         okHttpBuilder.sslSocketFactory(sslContext.getSocketFactory(), trustManager);
-
-        ApnsConfiguration configuration = Configuration.getInstance().getApnsConfiguration();
 
         final Retrofit.Builder retrofitBuilder = new Retrofit.Builder();
         if (configuration != null && configuration.isSandbox()) {
@@ -69,8 +70,7 @@ public class ApnsPushService implements PushService {
     @Override
     public boolean push(final Target target, final boolean highPriority) {
         LOGGER.info("attempt push to APNS ("+target.getToken()+")");
-        final ApnsConfiguration configuration = Configuration.getInstance().getApnsConfiguration();
-        final String bundleId = configuration == null ? null : configuration.getBundleId();
+        final String bundleId = configuration.getBundleId();
         if (bundleId == null) {
             LOGGER.error("bundle id not configured");
             return false;

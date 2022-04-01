@@ -18,8 +18,9 @@ public class FcmPushService implements PushService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FcmPushService.class);
 
-    public FcmPushService() {
-        final FcmConfiguration config = Configuration.getInstance().getFcmConfiguration();
+    private final FcmConfiguration configuration;
+
+    public FcmPushService(final FcmConfiguration config) {
         try {
             FirebaseOptions options = FirebaseOptions.builder()
                     .setCredentials(GoogleCredentials.fromStream(new FileInputStream(config.getServiceAccountFile())))
@@ -28,16 +29,16 @@ public class FcmPushService implements PushService {
         } catch (final IOException e) {
             LOGGER.error("Unable to initialize firebase app", e);
         }
+        this.configuration = config;
     }
 
     @Override
     public boolean push(Target target, boolean highPriority) throws TargetDeviceNotFoundException {
-        final FcmConfiguration config = Configuration.getInstance().getFcmConfiguration();
-        String account = target.getDevice();
+        final String account = target.getDevice();
 
-        String channel = target.getChannel() == null || target.getChannel().isEmpty() ? null : target.getChannel();
+        final String channel = target.getChannel() == null || target.getChannel().isEmpty() ? null : target.getChannel();
         final String collapseKey;
-        if (config.collapse) {
+        if (configuration.collapse) {
             if (channel == null) {
                 collapseKey = account.substring(0, 6);
             } else {
