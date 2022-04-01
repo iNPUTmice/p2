@@ -34,7 +34,7 @@ public class PushServiceManager {
         SERVICES = builder.build();
 
         if (SERVICES.isEmpty()) {
-            LOGGER.warn("No push service have been configured");
+            LOGGER.warn("No push services have been configured");
         }
 
         SERVICE_TO_CLASS = serviceToClassBuilder.build();

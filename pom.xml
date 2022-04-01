@@ -35,7 +35,7 @@
         <dependency>
             <groupId>com.google.firebase</groupId>
             <artifactId>firebase-admin</artifactId>
-            <version>7.1.0</version>
+            <version>8.1.0</version>
         </dependency>
 
         <!-- Database storage -->
@@ -49,13 +49,13 @@
         <dependency>
             <groupId>org.mariadb.jdbc</groupId>
             <artifactId>mariadb-java-client</artifactId>
-            <version>2.6.1</version>
+            <version>3.0.3</version>
         </dependency>
 
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>30.1.1-jre</version>
+            <version>31.1-jre</version>
         </dependency>
 
         <dependency>
@@ -73,13 +73,13 @@
         <dependency>
             <groupId>org.conscrypt</groupId>
             <artifactId>conscrypt-openjdk-uber</artifactId>
-            <version>2.4.0</version>
+            <version>2.5.2</version>
         </dependency>
 
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
-            <version>1.7.30</version>
+            <version>1.7.36</version>
         </dependency>
 
         <!-- JAXB dependencies, required for Java 11 -->
