@@ -112,7 +112,12 @@ public class PushController {
             }
 
             final String device = Utils.combineAndHash(from.toEscapedString(), deviceId);
-            final String channel = muc == null ? "" : Utils.combineAndHash(muc.toEscapedString(), deviceId);
+            final String channel;
+            if (muc == null) {
+                channel = "";
+            } else {
+                channel = Utils.combineAndHash(muc.toEscapedString(), deviceId);
+            }
 
             final Service service;
             try {
@@ -193,22 +198,28 @@ public class PushController {
                 .findFirst();
         final Jid from = iq.getFrom().asBareJid();
         if (optionalData.isPresent()) {
-
             final Service service;
             try {
                 service = findService(COMMAND_NODE_UNREGISTER_PREFIX, command.getNode());
-            } catch (IllegalArgumentException e) {
+            } catch (final IllegalArgumentException e) {
                 return iq.createError(Condition.ITEM_NOT_FOUND);
             }
 
             final DataForm data = optionalData.get();
             final String deviceId = findDeviceId(data);
-            final String channel = data.findValue("channel");
-            if (isNullOrEmpty(channel) || isNullOrEmpty(deviceId)) {
+            final Jid muc = data.findValueAsJid("muc");
+            if (isNullOrEmpty(deviceId)) {
                 return iq.createError(Condition.BAD_REQUEST);
             }
             final String device = Utils.combineAndHash(from.toEscapedString(), deviceId);
-            if (TargetStore.getInstance().delete(device, channel)) {
+            final boolean success;
+            if (muc != null) {
+                final String channel = Utils.combineAndHash(muc.toEscapedString(), deviceId);
+                success = TargetStore.getInstance().delete(device, channel);
+            } else {
+                success = TargetStore.getInstance().delete(service, device);
+            }
+            if (success) {
                 final Command result = new Command(command.getNode(), Command.Action.COMPLETE);
                 return iq.createResult(result);
             } else {

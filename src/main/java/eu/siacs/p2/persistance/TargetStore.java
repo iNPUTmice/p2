@@ -81,11 +81,22 @@ public class TargetStore {
     }
 
     public boolean delete(String device, String channel) {
-        try (Connection connection = database.open()) {
+        try (final Connection connection = database.open()) {
             return connection
                     .createQuery("delete from target where device=:device and channel=:channel")
                     .addParameter("device", device)
                     .addParameter("channel", channel)
+                    .executeUpdate()
+                    .getResult() == 1;
+        }
+    }
+
+    public boolean delete(final Service service, final String device) {
+        try (final Connection connection = database.open()) {
+            return connection
+                    .createQuery("delete from target where device=:device and service=:service")
+                    .addParameter("device", device)
+                    .addParameter("service", service)
                     .executeUpdate()
                     .getResult() == 1;
         }
