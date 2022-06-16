@@ -5,6 +5,7 @@ import eu.siacs.p2.persistance.TargetStore;
 import eu.siacs.p2.pojo.Service;
 import eu.siacs.p2.pojo.Target;
 import eu.siacs.p2.xmpp.extensions.push.Notification;
+import java.util.*;
 import rocks.xmpp.addr.Jid;
 import rocks.xmpp.core.stanza.IQHandler;
 import rocks.xmpp.core.stanza.model.IQ;
@@ -14,72 +15,75 @@ import rocks.xmpp.extensions.data.model.DataForm;
 import rocks.xmpp.extensions.pubsub.model.Item;
 import rocks.xmpp.extensions.pubsub.model.PubSub;
 
-import java.util.*;
-
 public class PushController {
 
     private static final String COMMAND_NODE_REGISTER_PREFIX = "register-push-";
     private static final String COMMAND_NODE_UNREGISTER_PREFIX = "unregister-push-";
 
-    public static IQHandler commandHandler = (iq -> {
-        final Command command = iq.getExtension(Command.class);
-        if (command != null && command.getAction() == Command.Action.EXECUTE) {
-            final String node = command.getNode();
-            if (node != null && node.startsWith(COMMAND_NODE_REGISTER_PREFIX)) {
-                return register(iq, command);
-            } else if (node != null && node.startsWith(COMMAND_NODE_UNREGISTER_PREFIX)) {
-                return unregister(iq, command);
-            }
-        }
-        return iq.createError(Condition.BAD_REQUEST);
-    });
-    public static IQHandler pubsubHandler = (iq -> {
+    public static IQHandler commandHandler =
+            (iq -> {
+                final Command command = iq.getExtension(Command.class);
+                if (command != null && command.getAction() == Command.Action.EXECUTE) {
+                    final String node = command.getNode();
+                    if (node != null && node.startsWith(COMMAND_NODE_REGISTER_PREFIX)) {
+                        return register(iq, command);
+                    } else if (node != null && node.startsWith(COMMAND_NODE_UNREGISTER_PREFIX)) {
+                        return unregister(iq, command);
+                    }
+                }
+                return iq.createError(Condition.BAD_REQUEST);
+            });
+    public static IQHandler pubsubHandler =
+            (iq -> {
+                final PubSub pubSub = iq.getExtension(PubSub.class);
+                if (pubSub != null && iq.getType() == IQ.Type.SET) {
+                    final PubSub.Publish publish = pubSub.getPublish();
+                    final String node = publish != null ? publish.getNode() : null;
+                    final Jid jid = iq.getFrom();
+                    final DataForm publishOptions = pubSub.getPublishOptions();
+                    final String secret =
+                            publishOptions != null ? publishOptions.findValue("secret") : null;
+                    final DataForm pushSummary = findPushSummary(publish);
+                    final boolean hasLastMessageBody =
+                            pushSummary != null
+                                    && !isNullOrEmpty(pushSummary.findValue("last-message-body"));
 
+                    if (node != null && secret != null && jid.isBareJid()) {
+                        final Jid domain = Jid.ofDomain(jid.getDomain());
+                        final Target target = TargetStore.getInstance().find(domain, node);
+                        if (target != null) {
+                            if (secret.equals(target.getSecret())) {
+                                final PushService pushService;
+                                try {
+                                    pushService =
+                                            PushServiceManager.getPushServiceInstance(
+                                                    target.getService());
+                                } catch (final IllegalStateException e) {
+                                    e.printStackTrace();
+                                    return iq.createError(Condition.INTERNAL_SERVER_ERROR);
+                                }
+                                try {
+                                    if (pushService.push(target, hasLastMessageBody)) {
+                                        return iq.createResult();
+                                    } else {
+                                        return iq.createError(Condition.RECIPIENT_UNAVAILABLE);
+                                    }
+                                } catch (TargetDeviceNotFoundException e) {
+                                    return iq.createError(Condition.ITEM_NOT_FOUND);
+                                }
 
-        final PubSub pubSub = iq.getExtension(PubSub.class);
-        if (pubSub != null && iq.getType() == IQ.Type.SET) {
-            final PubSub.Publish publish = pubSub.getPublish();
-            final String node = publish != null ? publish.getNode() : null;
-            final Jid jid = iq.getFrom();
-            final DataForm publishOptions = pubSub.getPublishOptions();
-            final String secret = publishOptions != null ? publishOptions.findValue("secret") : null;
-            final DataForm pushSummary = findPushSummary(publish);
-            final boolean hasLastMessageBody = pushSummary != null && !isNullOrEmpty(pushSummary.findValue("last-message-body"));
-
-            if (node != null && secret != null && jid.isBareJid()) {
-                final Jid domain = Jid.ofDomain(jid.getDomain());
-                final Target target = TargetStore.getInstance().find(domain, node);
-                if (target != null) {
-                    if (secret.equals(target.getSecret())) {
-                        final PushService pushService;
-                        try {
-                            pushService = PushServiceManager.getPushServiceInstance(target.getService());
-                        } catch (final IllegalStateException e) {
-                            e.printStackTrace();
-                            return iq.createError(Condition.INTERNAL_SERVER_ERROR);
-                        }
-                        try {
-                            if (pushService.push(target, hasLastMessageBody)) {
-                                return iq.createResult();
                             } else {
-                                return iq.createError(Condition.RECIPIENT_UNAVAILABLE);
+                                return iq.createError(Condition.FORBIDDEN);
                             }
-                        } catch (TargetDeviceNotFoundException e) {
+                        } else {
                             return iq.createError(Condition.ITEM_NOT_FOUND);
                         }
-
                     } else {
                         return iq.createError(Condition.FORBIDDEN);
                     }
-                } else {
-                    return iq.createError(Condition.ITEM_NOT_FOUND);
                 }
-            } else {
-                return iq.createError(Condition.FORBIDDEN);
-            }
-        }
-        return iq.createError(Condition.BAD_REQUEST);
-    });
+                return iq.createError(Condition.BAD_REQUEST);
+            });
 
     private static DataForm findPushSummary(final PubSub.Publish publish) {
         final Item item = publish == null ? null : publish.getItem();
@@ -92,10 +96,11 @@ public class PushController {
     }
 
     private static IQ register(final IQ iq, final Command command) {
-        final Optional<DataForm> optionalData = command.getPayloads().stream()
-                .filter(p -> p instanceof DataForm)
-                .map(p -> (DataForm) p)
-                .findFirst();
+        final Optional<DataForm> optionalData =
+                command.getPayloads().stream()
+                        .filter(p -> p instanceof DataForm)
+                        .map(p -> (DataForm) p)
+                        .findFirst();
         final Jid from = iq.getFrom().asBareJid();
         if (optionalData.isPresent()) {
             final DataForm data = optionalData.get();
@@ -143,13 +148,16 @@ public class PushController {
                 TargetStore.getInstance().create(target);
             }
 
-            final Command result = new Command(command.getNode(),
-                    String.valueOf(System.currentTimeMillis()),
-                    Command.Status.COMPLETED,
-                    null,
-                    null,
-                    Collections.singletonList(createRegistryResponseDataForm(target.getNode(), target.getSecret()))
-            );
+            final Command result =
+                    new Command(
+                            command.getNode(),
+                            String.valueOf(System.currentTimeMillis()),
+                            Command.Status.COMPLETED,
+                            null,
+                            null,
+                            Collections.singletonList(
+                                    createRegistryResponseDataForm(
+                                            target.getNode(), target.getSecret())));
             return iq.createResult(result);
         } else {
             return iq.createError(Condition.BAD_REQUEST);
@@ -185,17 +193,22 @@ public class PushController {
 
     private static DataForm createRegistryResponseDataForm(String node, String secret) {
         List<DataForm.Field> fields = new ArrayList<>();
-        fields.add(DataForm.Field.builder().var("jid").value(ConfigurationFile.getInstance().jid()).build());
+        fields.add(
+                DataForm.Field.builder()
+                        .var("jid")
+                        .value(ConfigurationFile.getInstance().jid())
+                        .build());
         fields.add(DataForm.Field.builder().var("node").value(node).build());
         fields.add(DataForm.Field.builder().var("secret").value(secret).build());
         return new DataForm(DataForm.Type.FORM, fields);
     }
 
     private static IQ unregister(final IQ iq, final Command command) {
-        final Optional<DataForm> optionalData = command.getPayloads().stream()
-                .filter(p -> p instanceof DataForm)
-                .map(p -> (DataForm) p)
-                .findFirst();
+        final Optional<DataForm> optionalData =
+                command.getPayloads().stream()
+                        .filter(p -> p instanceof DataForm)
+                        .map(p -> (DataForm) p)
+                        .findFirst();
         final Jid from = iq.getFrom().asBareJid();
         if (optionalData.isPresent()) {
             final Service service;
@@ -229,5 +242,4 @@ public class PushController {
             return iq.createError(Condition.BAD_REQUEST);
         }
     }
-
 }

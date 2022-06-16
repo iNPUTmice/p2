@@ -1,6 +1,5 @@
 package eu.siacs.p2.persistance.converter;
 
-
 import org.sql2o.converters.Converter;
 import org.sql2o.converters.ConverterException;
 import rocks.xmpp.addr.Jid;
@@ -14,7 +13,8 @@ public class JidConverter implements Converter<Jid> {
         } else if (value == null) {
             return null;
         }
-        throw new ConverterException(String.format("Unable to convert from %s to Jid", value.getClass().getName()));
+        throw new ConverterException(
+                String.format("Unable to convert from %s to Jid", value.getClass().getName()));
     }
 
     @Override

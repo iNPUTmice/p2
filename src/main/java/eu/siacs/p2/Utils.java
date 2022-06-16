@@ -1,11 +1,10 @@
 package eu.siacs.p2;
 
-import org.apache.commons.codec.digest.DigestUtils;
-
 import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.stream.Collectors;
+import org.apache.commons.codec.digest.DigestUtils;
 
 public class Utils {
 

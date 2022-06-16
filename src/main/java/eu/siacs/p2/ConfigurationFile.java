@@ -4,7 +4,6 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import eu.siacs.p2.apns.GsonAdaptersApnsConfiguration;
 import eu.siacs.p2.fcm.GsonAdaptersFcmConfiguration;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;

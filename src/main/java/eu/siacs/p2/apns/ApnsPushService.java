@@ -6,21 +6,18 @@ import com.google.gson.GsonBuilder;
 import eu.siacs.p2.PushService;
 import eu.siacs.p2.pojo.Target;
 import eu.siacs.p2.util.TrustManager;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.X509TrustManager;
 import okhttp3.OkHttpClient;
 import okhttp3.ResponseBody;
-import org.immutables.gson.Gson;
-import org.immutables.value.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
-
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.X509TrustManager;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
 
 public class ApnsPushService implements PushService {
 

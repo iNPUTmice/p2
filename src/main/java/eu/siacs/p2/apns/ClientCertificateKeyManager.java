@@ -1,10 +1,6 @@
 package eu.siacs.p2.apns;
 
 import com.google.common.base.Strings;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.net.ssl.X509KeyManager;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -23,6 +19,9 @@ import java.util.Base64;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.net.ssl.X509KeyManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ClientCertificateKeyManager implements X509KeyManager {
 
@@ -93,7 +92,8 @@ public class ClientCertificateKeyManager implements X509KeyManager {
         final String privateKeyFile = apnsConfiguration.privateKey();
         if (Strings.isNullOrEmpty(privateKeyFile)) {
             LOGGER.error(
-                    "Unable to load private key for client certificate authentication. No key configured");
+                    "Unable to load private key for client certificate authentication. No key"
+                            + " configured");
             return null;
         }
         final File file = new File(privateKeyFile);

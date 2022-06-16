@@ -4,9 +4,7 @@ public class Notification {
 
     public Aps aps = new Aps();
 
-    private Notification() {
-
-    }
+    private Notification() {}
 
     public static Notification createContentAvailable() {
         final Notification notification = new Notification();
@@ -34,5 +32,4 @@ public class Notification {
         public String subtitle;
         public String body;
     }
-
 }

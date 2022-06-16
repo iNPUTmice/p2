@@ -3,10 +3,9 @@ package eu.siacs.p2;
 import com.google.gson.annotations.SerializedName;
 import eu.siacs.p2.apns.ApnsConfiguration;
 import eu.siacs.p2.fcm.FcmConfiguration;
-import org.immutables.value.Value;
-
 import java.io.File;
 import java.util.Optional;
+import org.immutables.value.Value;
 
 @org.immutables.gson.Gson.TypeAdapters
 @Value.Immutable

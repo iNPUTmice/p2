@@ -1,8 +1,5 @@
 package eu.siacs.p2.fcm;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
@@ -10,6 +7,8 @@ import com.google.firebase.messaging.*;
 import eu.siacs.p2.PushService;
 import eu.siacs.p2.TargetDeviceNotFoundException;
 import eu.siacs.p2.pojo.Target;
+import java.io.FileInputStream;
+import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,9 +20,12 @@ public class FcmPushService implements PushService {
 
     public FcmPushService(final FcmConfiguration config) {
         try {
-            FirebaseOptions options = FirebaseOptions.builder()
-                    .setCredentials(GoogleCredentials.fromStream(new FileInputStream(config.serviceAccountFile())))
-                    .build();
+            FirebaseOptions options =
+                    FirebaseOptions.builder()
+                            .setCredentials(
+                                    GoogleCredentials.fromStream(
+                                            new FileInputStream(config.serviceAccountFile())))
+                            .build();
             FirebaseApp.initializeApp(options);
         } catch (final IOException e) {
             LOGGER.error("Unable to initialize firebase app", e);
@@ -35,7 +37,10 @@ public class FcmPushService implements PushService {
     public boolean push(Target target, boolean highPriority) throws TargetDeviceNotFoundException {
         final String account = target.getDevice();
 
-        final String channel = target.getChannel() == null || target.getChannel().isEmpty() ? null : target.getChannel();
+        final String channel =
+                target.getChannel() == null || target.getChannel().isEmpty()
+                        ? null
+                        : target.getChannel();
         final String collapseKey;
         if (configuration.collapse()) {
             if (channel == null) {
@@ -47,11 +52,12 @@ public class FcmPushService implements PushService {
             collapseKey = null;
         }
 
-        final Message.Builder message = Message.builder().
-                setToken(target.getToken()).
-                setAndroidConfig(AndroidConfig.builder().
-                        setCollapseKey(collapseKey).build()).
-                putData("account", account);
+        final Message.Builder message =
+                Message.builder()
+                        .setToken(target.getToken())
+                        .setAndroidConfig(
+                                AndroidConfig.builder().setCollapseKey(collapseKey).build())
+                        .putData("account", account);
         if (channel != null) {
             message.putData("channel", channel);
         }
@@ -71,6 +77,4 @@ public class FcmPushService implements PushService {
             }
         }
     }
-
-
 }

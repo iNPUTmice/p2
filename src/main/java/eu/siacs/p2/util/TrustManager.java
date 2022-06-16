@@ -1,16 +1,17 @@
 package eu.siacs.p2.util;
 
+import java.security.KeyStore;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
-import java.security.KeyStore;
 
 public class TrustManager {
 
     public static X509TrustManager getDefault() {
         try {
-            TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+            TrustManagerFactory trustManagerFactory =
+                    TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
             trustManagerFactory.init((KeyStore) null);
-            for(javax.net.ssl.TrustManager trustManager : trustManagerFactory.getTrustManagers()) {
+            for (javax.net.ssl.TrustManager trustManager : trustManagerFactory.getTrustManagers()) {
                 if (trustManager instanceof X509TrustManager) {
                     return (X509TrustManager) trustManager;
                 }
@@ -21,5 +22,4 @@ public class TrustManager {
             return null;
         }
     }
-
 }

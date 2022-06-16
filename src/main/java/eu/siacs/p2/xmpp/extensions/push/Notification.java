@@ -1,9 +1,8 @@
 package eu.siacs.p2.xmpp.extensions.push;
 
-import rocks.xmpp.extensions.data.model.DataForm;
-
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import rocks.xmpp.extensions.data.model.DataForm;
 
 @XmlRootElement(name = "notification")
 public class Notification {
@@ -13,9 +12,7 @@ public class Notification {
     @XmlElement(name = "x", namespace = DataForm.NAMESPACE)
     private DataForm pushSummary;
 
-    private Notification() {
-
-    }
+    private Notification() {}
 
     public Notification(DataForm pushSummary) {
         this.pushSummary = pushSummary;
@@ -24,5 +21,4 @@ public class Notification {
     public DataForm getPushSummary() {
         return this.pushSummary;
     }
-
 }
