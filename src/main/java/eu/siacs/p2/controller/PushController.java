@@ -185,7 +185,7 @@ public class PushController {
 
     private static DataForm createRegistryResponseDataForm(String node, String secret) {
         List<DataForm.Field> fields = new ArrayList<>();
-        fields.add(DataForm.Field.builder().var("jid").value(Configuration.getInstance().getJid()).build());
+        fields.add(DataForm.Field.builder().var("jid").value(ConfigurationFile.getInstance().jid()).build());
         fields.add(DataForm.Field.builder().var("node").value(node).build());
         fields.add(DataForm.Field.builder().var("secret").value(secret).build());
         return new DataForm(DataForm.Type.FORM, fields);

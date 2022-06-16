@@ -1,6 +1,6 @@
 package eu.siacs.p2.apns;
 
-import eu.siacs.p2.Configuration;
+import com.google.common.base.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -8,7 +8,6 @@ import javax.net.ssl.X509KeyManager;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.net.InetAddress;
 import java.net.Socket;
 import java.nio.file.Files;
 import java.security.KeyFactory;
@@ -31,9 +30,9 @@ public class ClientCertificateKeyManager implements X509KeyManager {
 
     private final CertificateFactory certificateFactory;
 
-    private final ApnsPushService.ApnsConfiguration apnsConfiguration;
+    private final ApnsConfiguration apnsConfiguration;
 
-    ClientCertificateKeyManager(final ApnsPushService.ApnsConfiguration apnsConfiguration) {
+    ClientCertificateKeyManager(final ApnsConfiguration apnsConfiguration) {
         this.apnsConfiguration = apnsConfiguration;
         try {
             certificateFactory = CertificateFactory.getInstance("X.509");
@@ -64,17 +63,18 @@ public class ClientCertificateKeyManager implements X509KeyManager {
 
     @Override
     public X509Certificate[] getCertificateChain(String alias) {
-        final String certificateFile = apnsConfiguration.getCertificate();
-        if (certificateFile == null) {
+        final String certificateFile = apnsConfiguration.certificate();
+        if (Strings.isNullOrEmpty(certificateFile)) {
             LOGGER.error("No client certificate configured");
             return new X509Certificate[0];
         }
         final File file = new File(certificateFile);
         try {
             final FileInputStream fileInputStream = new FileInputStream(file);
-            final Collection<? extends Certificate> certificates = certificateFactory.generateCertificates(fileInputStream);
+            final Collection<? extends Certificate> certificates =
+                    certificateFactory.generateCertificates(fileInputStream);
             final List<X509Certificate> x509Certificates = new ArrayList<>();
-            for(Certificate certificate : certificates) {
+            for (Certificate certificate : certificates) {
                 if (certificate instanceof X509Certificate) {
                     x509Certificates.add((X509Certificate) certificate);
                 }
@@ -88,20 +88,25 @@ public class ClientCertificateKeyManager implements X509KeyManager {
 
     @Override
     public PrivateKey getPrivateKey(String s) {
-        //openssl pkcs8 -topk8 -inform PEM -outform PEM -nocrypt -in /home/daniel/Projects/letsencrypt.sh/certs/gultsch.de/privkey.pem -out privatekey.pem
-        final String privateKeyFile = apnsConfiguration.getPrivateKey();
-        if (privateKeyFile == null) {
-            LOGGER.error("Unable to load private key for client certificate authentication. No key configured");
+        // openssl pkcs8 -topk8 -inform PEM -outform PEM -nocrypt -in
+        // /home/daniel/Projects/letsencrypt.sh/certs/gultsch.de/privkey.pem -out privatekey.pem
+        final String privateKeyFile = apnsConfiguration.privateKey();
+        if (Strings.isNullOrEmpty(privateKeyFile)) {
+            LOGGER.error(
+                    "Unable to load private key for client certificate authentication. No key configured");
             return null;
         }
         final File file = new File(privateKeyFile);
         try {
-            final String key = Files.lines(file.toPath()).filter(l -> !l.startsWith("----")).collect(Collectors.joining());
+            final String key =
+                    Files.lines(file.toPath())
+                            .filter(l -> !l.startsWith("----"))
+                            .collect(Collectors.joining());
             final KeyFactory kf = KeyFactory.getInstance("RSA");
             final byte[] encodedKey = Base64.getDecoder().decode(key);
             final PKCS8EncodedKeySpec keySpecPKCS8 = new PKCS8EncodedKeySpec(encodedKey);
             return kf.generatePrivate(keySpecPKCS8);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             LOGGER.error("Unable to load private key for client certificate authentication", e);
             return null;
         }

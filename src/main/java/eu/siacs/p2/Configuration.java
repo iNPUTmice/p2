@@ -1,116 +1,43 @@
 package eu.siacs.p2;
 
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonSyntaxException;
-import eu.siacs.p2.apns.ApnsPushService;
-import eu.siacs.p2.fcm.FcmPushService;
-import rocks.xmpp.addr.Jid;
+import com.google.gson.annotations.SerializedName;
+import eu.siacs.p2.apns.ApnsConfiguration;
+import eu.siacs.p2.fcm.FcmConfiguration;
+import org.immutables.value.Value;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
+import java.util.Optional;
 
-public class Configuration {
+@org.immutables.gson.Gson.TypeAdapters
+@Value.Immutable
+public interface Configuration {
 
-    private static File FILE = new File("config.json");
-    private static Configuration INSTANCE;
+    String dbUrl();
 
-    private String host = "localhost";
-    private int port = 5348; //prosody is 5347
-    private String jid;
-    private boolean debug = false;
-    private String sharedSecret;
-    private FcmPushService.FcmConfiguration fcm;
-    private ApnsPushService.ApnsConfiguration apns;
+    String dbUsername();
 
-    private String dbUrl;
-    private String dbUsername;
-    private String dbPassword;
+    String dbPassword();
 
-    public String getDbUrl() {
-        return dbUrl;
+    @Value.Default
+    default boolean debug() {
+        return true;
     }
 
-    public String getDbUsername() {
-        return dbUsername;
-    }
+    @SerializedName("apns")
+    Optional<ApnsConfiguration> apnsConfiguration();
 
-    public String getDbPassword() {
-        return dbPassword;
-    }
+    String jid();
 
-    private Configuration() {
+    String host();
 
-    }
+    int port();
 
-    public synchronized static void setFilename(String filename) throws FileNotFoundException {
-        if (INSTANCE != null) {
-            throw new IllegalStateException("Unable to set filename after instance has been created");
-        }
-        Configuration.FILE = new File(filename);
-        if (!Configuration.FILE.exists()) {
-            throw new FileNotFoundException();
-        }
-    }
+    String sharedSecret();
 
-    public synchronized static Configuration getInstance() {
-        if (INSTANCE == null) {
-            INSTANCE = load();
-        }
-        return INSTANCE;
-    }
-
-    private static Configuration load() {
-        final GsonBuilder gsonBuilder = new GsonBuilder();
-        final Gson gson = gsonBuilder.create();
-        try {
-            System.out.println("Reading configuration from " + FILE.getAbsolutePath());
-            return gson.fromJson(new FileReader(FILE), Configuration.class);
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException("Configuration file not found");
-        } catch (JsonSyntaxException e) {
-            throw new RuntimeException("Invalid syntax in config file");
-        }
-    }
-
-    public boolean isDebug() {
-        return debug;
-    }
-
-    public FcmPushService.FcmConfiguration getFcmConfiguration() {
-        return this.fcm;
-    }
-
-    public ApnsPushService.ApnsConfiguration getApnsConfiguration() {
-        return this.apns;
-    }
-
-    public String getName() {
-        return jid;
-    }
-
-    public String getHost() {
-        return host;
-    }
-
-    public int getPort() {
-        return port;
-    }
-
-    public String getSharedSecret() {
-        return sharedSecret;
-    }
-
-
-    public String getJid() {
-        return jid;
-    }
-
-    public void validate() {
-        if (fcm != null) {
-            final String filename = fcm.getServiceAccountFile();
+    default void validate() {
+        final var optionalFcm = fcmConfiguration();
+        if (optionalFcm.isPresent()) {
+            final String filename = optionalFcm.get().serviceAccountFile();
             if (filename == null) {
                 throw new IllegalStateException("FCM enabled but no service account file set");
             }
@@ -118,7 +45,11 @@ public class Configuration {
             if (file.exists()) {
                 return;
             }
-            throw new IllegalStateException(String.format("%s does not exist", file.getAbsolutePath()));
+            throw new IllegalStateException(
+                    String.format("%s does not exist", file.getAbsolutePath()));
         }
     }
+
+    @SerializedName("fcm")
+    Optional<FcmConfiguration> fcmConfiguration();
 }

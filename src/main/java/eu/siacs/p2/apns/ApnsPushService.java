@@ -1,13 +1,15 @@
 package eu.siacs.p2.apns;
 
+import com.google.common.base.Strings;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.GsonBuilder;
-import eu.siacs.p2.Configuration;
 import eu.siacs.p2.PushService;
 import eu.siacs.p2.pojo.Target;
 import eu.siacs.p2.util.TrustManager;
 import okhttp3.OkHttpClient;
 import okhttp3.ResponseBody;
+import org.immutables.gson.Gson;
+import org.immutables.value.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import retrofit2.Response;
@@ -32,7 +34,6 @@ public class ApnsPushService implements PushService {
 
     private final ApnsConfiguration configuration;
 
-
     public ApnsPushService(final ApnsConfiguration configuration) {
         this.configuration = configuration;
         final GsonBuilder gsonBuilder = new GsonBuilder();
@@ -41,7 +42,8 @@ public class ApnsPushService implements PushService {
         final SSLContext sslContext;
         try {
             sslContext = SSLContext.getInstance("TLSv1.2");
-            sslContext.init(new KeyManager[]{new ClientCertificateKeyManager(configuration)}, null, null);
+            sslContext.init(
+                    new KeyManager[] {new ClientCertificateKeyManager(configuration)}, null, null);
         } catch (NoSuchAlgorithmException | KeyManagementException e) {
             throw new AssertionError(e);
         }
@@ -54,7 +56,7 @@ public class ApnsPushService implements PushService {
         okHttpBuilder.sslSocketFactory(sslContext.getSocketFactory(), trustManager);
 
         final Retrofit.Builder retrofitBuilder = new Retrofit.Builder();
-        if (configuration != null && configuration.isSandbox()) {
+        if (configuration != null && configuration.sandbox()) {
             retrofitBuilder.baseUrl(SANDBOX_BASE_URL);
         } else {
             retrofitBuilder.baseUrl(BASE_URL);
@@ -69,22 +71,32 @@ public class ApnsPushService implements PushService {
 
     @Override
     public boolean push(final Target target, final boolean highPriority) {
-        LOGGER.info("attempt push to APNS ("+target.getToken()+")");
-        final String bundleId = configuration.getBundleId();
-        if (bundleId == null) {
+        LOGGER.info("attempt push to APNS (" + target.getToken() + ")");
+        final String bundleId = configuration.bundleId();
+        if (Strings.isNullOrEmpty(bundleId)) {
             LOGGER.error("bundle id not configured");
             return false;
         }
         try {
-            final Notification notification = highPriority ? Notification.createAlert() : Notification.createContentAvailable();
-            final Response<Void> response = this.httpInterface.sendAlert(target.getToken(), bundleId, notification).execute();
+            final Notification notification =
+                    highPriority
+                            ? Notification.createAlert()
+                            : Notification.createContentAvailable();
+            final Response<Void> response =
+                    this.httpInterface
+                            .sendAlert(target.getToken(), bundleId, notification)
+                            .execute();
             if (response.isSuccessful()) {
                 LOGGER.info("push to APNS was successful");
                 return true;
             } else {
                 final ResponseBody errorBody = response.errorBody();
                 final String errorBodyString = errorBody == null ? null : errorBody.string();
-                LOGGER.warn("push to APNS failed with response code=" +response.code()+", body="+errorBodyString);
+                LOGGER.warn(
+                        "push to APNS failed with response code="
+                                + response.code()
+                                + ", body="
+                                + errorBodyString);
             }
         } catch (Exception e) {
             LOGGER.warn("push to APNS failed", e);
@@ -92,27 +104,5 @@ public class ApnsPushService implements PushService {
         }
 
         return false;
-    }
-    public static class ApnsConfiguration {
-        private String privateKey;
-        private String certificate;
-        private String bundleId;
-        private boolean sandbox = false;
-
-        public String getPrivateKey() {
-            return privateKey;
-        }
-
-        public String getCertificate() {
-            return certificate;
-        }
-
-        public String getBundleId() {
-            return bundleId;
-        }
-
-        public boolean isSandbox() {
-            return sandbox;
-        }
     }
 }

@@ -45,7 +45,7 @@ public class P2 {
         final String config = commandLine.getOptionValue('c');
         if (config != null) {
             try {
-                Configuration.setFilename(config);
+                ConfigurationFile.setFilename(config);
             } catch (FileNotFoundException e) {
                 System.err.println("The config file you supplied does not exits");
                 return;
@@ -58,20 +58,20 @@ public class P2 {
 
         builder.extensions(Extension.of(Notification.class));
 
-        final Configuration configuration = Configuration.getInstance();
+        final Configuration configuration = ConfigurationFile.getInstance();
 
         configuration.validate();
 
-        if (configuration.isDebug()) {
+        if (configuration.debug()) {
             builder.debugger(ConsoleDebugger.class);
         }
 
         final ExternalComponent externalComponent = ExternalComponent.create(
-                configuration.getName(),
-                configuration.getSharedSecret(),
+                configuration.jid(),
+                configuration.sharedSecret(),
                 builder.build(),
-                configuration.getHost(),
-                configuration.getPort()
+                configuration.host(),
+                configuration.port()
         );
 
         externalComponent.addIQHandler(Command.class, PushController.commandHandler);

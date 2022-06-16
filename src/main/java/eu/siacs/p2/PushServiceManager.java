@@ -18,16 +18,17 @@ public class PushServiceManager {
 
     static {
         final var builder = ImmutableClassToInstanceMap.<PushService>builder();
-        final ImmutableMap.Builder<Service, Class<? extends PushService>> serviceToClassBuilder = ImmutableMap.builder();
-        final var configuration = Configuration.getInstance();
-        final var fcmConfiguration = configuration.getFcmConfiguration();
-        if (fcmConfiguration != null) {
-            builder.put(FcmPushService.class, new FcmPushService(fcmConfiguration));
+        final ImmutableMap.Builder<Service, Class<? extends PushService>> serviceToClassBuilder =
+                ImmutableMap.builder();
+        final var configuration = ConfigurationFile.getInstance();
+        final var fcmConfiguration = configuration.fcmConfiguration();
+        if (fcmConfiguration.isPresent()) {
+            builder.put(FcmPushService.class, new FcmPushService(fcmConfiguration.get()));
             serviceToClassBuilder.put(Service.FCM, FcmPushService.class);
         }
-        final var apnsConfiguration = configuration.getApnsConfiguration();
-        if (apnsConfiguration != null) {
-            builder.put(ApnsPushService.class, new ApnsPushService(apnsConfiguration));
+        final var apnsConfiguration = configuration.apnsConfiguration();
+        if (apnsConfiguration.isPresent()) {
+            builder.put(ApnsPushService.class, new ApnsPushService(apnsConfiguration.get()));
             serviceToClassBuilder.put(Service.APNS, ApnsPushService.class);
         }
 
@@ -43,11 +44,13 @@ public class PushServiceManager {
     public static PushService getPushServiceInstance(Service service) {
         final Class<? extends PushService> clazz = SERVICE_TO_CLASS.get(service);
         if (clazz == null) {
-            throw new IllegalStateException(String.format("No corresponding class found for service=%s", service));
+            throw new IllegalStateException(
+                    String.format("No corresponding class found for service=%s", service));
         }
         final PushService pushService = SERVICES.getInstance(clazz);
         if (pushService == null) {
-            throw new IllegalStateException(String.format("No instance found for %s", clazz.getName()));
+            throw new IllegalStateException(
+                    String.format("No instance found for %s", clazz.getName()));
         }
         return SERVICES.getInstance(clazz);
     }

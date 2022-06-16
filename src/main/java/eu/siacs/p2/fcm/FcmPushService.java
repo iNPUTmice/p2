@@ -7,7 +7,6 @@ import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import com.google.firebase.messaging.*;
-import eu.siacs.p2.Configuration;
 import eu.siacs.p2.PushService;
 import eu.siacs.p2.TargetDeviceNotFoundException;
 import eu.siacs.p2.pojo.Target;
@@ -23,7 +22,7 @@ public class FcmPushService implements PushService {
     public FcmPushService(final FcmConfiguration config) {
         try {
             FirebaseOptions options = FirebaseOptions.builder()
-                    .setCredentials(GoogleCredentials.fromStream(new FileInputStream(config.getServiceAccountFile())))
+                    .setCredentials(GoogleCredentials.fromStream(new FileInputStream(config.serviceAccountFile())))
                     .build();
             FirebaseApp.initializeApp(options);
         } catch (final IOException e) {
@@ -38,7 +37,7 @@ public class FcmPushService implements PushService {
 
         final String channel = target.getChannel() == null || target.getChannel().isEmpty() ? null : target.getChannel();
         final String collapseKey;
-        if (configuration.collapse) {
+        if (configuration.collapse()) {
             if (channel == null) {
                 collapseKey = account.substring(0, 6);
             } else {
@@ -74,16 +73,4 @@ public class FcmPushService implements PushService {
     }
 
 
-    public static class FcmConfiguration {
-        private String serviceAccountFile;
-        private boolean collapse;
-
-        public String getServiceAccountFile() {
-            return serviceAccountFile;
-        }
-
-        public boolean isCollapse() {
-            return collapse;
-        }
-    }
 }
