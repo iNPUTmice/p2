@@ -1,8 +1,8 @@
 package eu.siacs.p2;
 
+import com.google.common.base.Strings;
 import eu.siacs.p2.controller.PushController;
 import eu.siacs.p2.xmpp.extensions.push.Notification;
-import java.io.FileNotFoundException;
 import java.security.SecureRandom;
 import java.security.Security;
 import org.apache.commons.cli.*;
@@ -19,10 +19,11 @@ import rocks.xmpp.extensions.pubsub.model.PubSub;
 
 public class P2 {
 
-    private static final Options OPTIONS;
     public static final SecureRandom SECURE_RANDOM = new SecureRandom();
-
+    private static final Options OPTIONS;
     private static final int RETRY_INTERVAL = 5000;
+
+    private static Configuration configuration;
 
     static {
         OPTIONS = new Options();
@@ -39,24 +40,19 @@ public class P2 {
 
     private static void main(final CommandLine commandLine) {
         final String config = commandLine.getOptionValue('c');
-        if (config != null) {
-            try {
-                ConfigurationFile.setFilename(config);
-            } catch (final FileNotFoundException e) {
-                System.err.println("The config file you supplied does not exits");
-                return;
-            }
+        if (Strings.isNullOrEmpty(config)) {
+            configuration = EnvironmentConfiguration.create();
+        } else {
+            configuration = FileConfiguration.read(config);
         }
+
+        configuration.validate();
 
         Security.insertProviderAt(Conscrypt.newProvider(), 1);
 
         final XmppSessionConfiguration.Builder builder = XmppSessionConfiguration.builder();
 
         builder.extensions(Extension.of(Notification.class));
-
-        final Configuration configuration = ConfigurationFile.getInstance();
-
-        configuration.validate();
 
         if (configuration.debug()) {
             builder.debugger(ConsoleDebugger.class);
@@ -91,5 +87,9 @@ public class P2 {
             }
             Utils.sleep(RETRY_INTERVAL);
         }
+    }
+
+    public static Configuration getConfiguration() {
+        return configuration;
     }
 }

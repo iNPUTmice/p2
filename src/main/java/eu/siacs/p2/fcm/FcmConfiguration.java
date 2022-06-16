@@ -9,6 +9,7 @@ public interface FcmConfiguration {
 
     String serviceAccountFile();
 
+    @Value.Default
     default boolean collapse() {
         return true;
     }

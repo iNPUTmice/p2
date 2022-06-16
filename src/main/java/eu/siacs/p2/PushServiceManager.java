@@ -20,7 +20,7 @@ public class PushServiceManager {
         final var builder = ImmutableClassToInstanceMap.<PushService>builder();
         final ImmutableMap.Builder<Service, Class<? extends PushService>> serviceToClassBuilder =
                 ImmutableMap.builder();
-        final var configuration = ConfigurationFile.getInstance();
+        final var configuration = P2.getConfiguration();
         final var fcmConfiguration = configuration.fcmConfiguration();
         if (fcmConfiguration.isPresent()) {
             builder.put(FcmPushService.class, new FcmPushService(fcmConfiguration.get()));

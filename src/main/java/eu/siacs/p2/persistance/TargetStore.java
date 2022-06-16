@@ -2,7 +2,7 @@ package eu.siacs.p2.persistance;
 
 import com.google.common.collect.ImmutableMap;
 import eu.siacs.p2.Configuration;
-import eu.siacs.p2.ConfigurationFile;
+import eu.siacs.p2.P2;
 import eu.siacs.p2.persistance.converter.JidConverter;
 import eu.siacs.p2.pojo.Service;
 import eu.siacs.p2.pojo.Target;
@@ -40,7 +40,7 @@ public class TargetStore {
     private final Sql2o database;
 
     private TargetStore() {
-        final Configuration configuration = ConfigurationFile.getInstance();
+        final Configuration configuration = P2.getConfiguration();
         final Quirks quirks = new NoQuirks(CONVERTERS);
         database =
                 new Sql2o(
@@ -48,7 +48,7 @@ public class TargetStore {
                         configuration.dbUsername(),
                         configuration.dbPassword(),
                         quirks);
-        try (Connection connection = database.open()) {
+        try (final Connection connection = database.open()) {
             connection.createQuery(CREATE_TARGET_TABLE).executeUpdate();
         }
     }
