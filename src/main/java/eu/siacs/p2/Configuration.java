@@ -3,7 +3,6 @@ package eu.siacs.p2;
 import com.google.gson.annotations.SerializedName;
 import eu.siacs.p2.apns.ApnsConfiguration;
 import eu.siacs.p2.fcm.FcmConfiguration;
-import java.io.File;
 import java.util.Optional;
 import org.immutables.value.Value;
 
@@ -25,6 +24,9 @@ public interface Configuration {
     @SerializedName("apns")
     Optional<ApnsConfiguration> apnsConfiguration();
 
+    @SerializedName("fcm")
+    Optional<FcmConfiguration> fcmConfiguration();
+
     String jid();
 
     String host();
@@ -34,21 +36,7 @@ public interface Configuration {
     String sharedSecret();
 
     default void validate() {
-        final var optionalFcm = fcmConfiguration();
-        if (optionalFcm.isPresent()) {
-            final String filename = optionalFcm.get().serviceAccountFile();
-            if (filename == null) {
-                throw new IllegalStateException("FCM enabled but no service account file set");
-            }
-            final File file = new File(filename);
-            if (file.exists()) {
-                return;
-            }
-            throw new IllegalStateException(
-                    String.format("%s does not exist", file.getAbsolutePath()));
-        }
+        fcmConfiguration().ifPresent(FcmConfiguration::validate);
+        apnsConfiguration().ifPresent(ApnsConfiguration::validate);
     }
-
-    @SerializedName("fcm")
-    Optional<FcmConfiguration> fcmConfiguration();
 }

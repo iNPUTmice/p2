@@ -86,8 +86,10 @@ public class EnvironmentConfiguration {
         final var value = readEnvironmentOrThrow(name);
         switch (value.toLowerCase(Locale.ROOT)) {
             case "true":
+            case "1":
                 return true;
             case "false":
+            case "0":
                 return false;
             default:
                 throw new IllegalStateException(
