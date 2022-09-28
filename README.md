@@ -1,5 +1,9 @@
 # Conversations Push Proxy
-An [XEP-0357: Push Notifications](https://xmpp.org/extensions/xep-0357.html) app server that relays push messages between the user’s server and Googles Firebase Cloud Messaging.
+An [XEP-0357: Push Notifications](https://xmpp.org/extensions/xep-0357.html) app server that relays push messages between the user’s server and push services like Google Firebase Cloud Messaging (FCM) or Apple Push Notification Service (APNS).
+
+**Note:** p2 is open source and closed contribution. It’s purpose is to document the privacy implications of using push services. Enthusiast users who are building Conversations from source are recommended to build Conversations without push capabilities. The app will work fine without push ([The State of Mobile XMPP in 2016](https://gultsch.de/xmpp_2016.html)).
+
+Commercial support for running p2 is available from the developer [Daniel Gultsch](https://gultsch.de).
 
 ## Background
 Due to restrictions in Firebase Cloud Messaging (and most other push services), only the developer can create push notifications for their apps. For this reason a user’s server wouldn’t be able to wake up a user’s device directly but has to proxy that wake up signal through the infrastructure of the app developer.
